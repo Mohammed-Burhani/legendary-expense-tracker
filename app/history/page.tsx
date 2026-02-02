@@ -11,6 +11,9 @@ import { useExpenses, useManagers, useSites, useLaborers, useDeleteExpense } fro
 
 export default function HistoryPage() {
   const { user } = useApp();
+  
+  // Fetch data based on user role
+  // Admin: all expenses, Manager: only their expenses
   const { data: expenses = [] } = useExpenses(user?.role === 'ADMIN' ? undefined : user?.id);
   const { data: managers = [] } = useManagers();
   const { data: sites = [] } = useSites();
@@ -20,10 +23,8 @@ export default function HistoryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
   const [filterSite, setFilterSite] = useState<string>('ALL');
-  
-  const visibleExpenses = expenses;
 
-  let filteredExpenses = visibleExpenses.filter(e => {
+  const filteredExpenses = expenses.filter(e => {
     const matchesSearch = e.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       e.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (user?.role === 'ADMIN' && managers.find(m => m.id === e.manager_id)?.name.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -49,7 +50,12 @@ export default function HistoryPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4">
-        <h2 className="text-2xl font-bold tracking-tight">Transaction History</h2>
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Transaction History</h2>
+          <p className="text-sm text-zinc-500 mt-1">
+            {user?.role === 'ADMIN' ? 'All transactions across sites' : 'Your transactions'}
+          </p>
+        </div>
         
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
@@ -62,7 +68,7 @@ export default function HistoryPage() {
         </div>
 
         <div className="flex gap-3">
-          <Select value={filterType} onValueChange={(val) => setFilterType(val as any)}>
+          <Select value={filterType} onValueChange={(val) => setFilterType(val as 'ALL' | 'INCOME' | 'EXPENSE')}>
             <SelectTrigger className="flex-1 bg-white border-zinc-200 h-11">
               <SelectValue />
             </SelectTrigger>
@@ -93,7 +99,13 @@ export default function HistoryPage() {
         {filteredExpenses.length === 0 ? (
           <div className="py-20 text-center">
             <p className="text-zinc-400 font-medium">No transactions found</p>
-            <p className="text-zinc-300 text-sm mt-1">Try adjusting your filters</p>
+            <p className="text-zinc-300 text-sm mt-1">
+              {searchTerm || filterType !== 'ALL' || filterSite !== 'ALL' 
+                ? 'Try adjusting your filters' 
+                : user?.role === 'ADMIN' 
+                  ? 'No transactions yet' 
+                  : 'Start adding expenses to see them here'}
+            </p>
           </div>
         ) : (
           filteredExpenses.map((entry) => {
@@ -101,6 +113,7 @@ export default function HistoryPage() {
             const site = sites.find(s => s.id === entry.site_id);
             const laborer = entry.laborer_id ? laborers.find(l => l.id === entry.laborer_id) : null;
             const entryDate = new Date(entry.date);
+            const canDelete = user?.role === 'MANAGER' && entry.manager_id === user.id;
             
             return (
               <div key={entry.id} className="flex items-center justify-between p-4 bg-white rounded-xl border border-zinc-100 shadow-sm hover:shadow-md transition-shadow group">
@@ -143,7 +156,7 @@ export default function HistoryPage() {
                   <p className={`font-bold text-base ${entry.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'}`}>
                     {entry.type === 'INCOME' ? '+' : '-'}${entry.amount}
                   </p>
-                  {user?.role === 'MANAGER' && entry.manager_id === user.id && (
+                  {canDelete && (
                     <Button
                       variant="ghost"
                       size="icon"

@@ -21,6 +21,8 @@ const COLORS = ['#000000', '#71717a', '#a1a1aa', '#d4d4d8', '#e4e4e7', '#10b981'
 
 export default function AnalyticsPage() {
   const { user } = useApp();
+  
+  // Fetch expenses based on role: Admin sees all, Manager sees only their own
   const { data: expenses = [] } = useExpenses(user?.role === 'ADMIN' ? undefined : user?.id);
   const { data: sites = [] } = useSites();
 
@@ -67,7 +69,9 @@ export default function AnalyticsPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Analytics</h2>
-        <p className="text-sm text-zinc-500 mt-1">Financial insights and trends</p>
+        <p className="text-sm text-zinc-500 mt-1">
+          {user?.role === 'ADMIN' ? 'Financial insights across all sites' : 'Your financial insights'}
+        </p>
       </div>
 
       <Card className={`border-none shadow-lg ${netProfit >= 0 ? 'bg-linear-to-br from-emerald-500 to-emerald-600' : 'bg-linear-to-br from-rose-500 to-rose-600'}`}>
@@ -135,7 +139,7 @@ export default function AnalyticsPage() {
                   </Pie>
                   <Tooltip 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                    formatter={(value: any) => `$${value}`}
+                    formatter={(value) => `$${value}`}
                   />
                 </PieChart>
               </ResponsiveContainer>

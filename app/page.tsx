@@ -16,16 +16,10 @@ export default function DashboardPage() {
   const { data: laborers = [] } = useLaborers();
   const { data: managers = [] } = useManagers();
 
-  const today = new Date().toISOString().split('T')[0];
   const todayEntries = todayExpenses;
   
   const userSite = sites.find(s => s.id === user?.site_id);
   const managerEntries = todayEntries.filter(e => e.manager_id === user?.id);
-  
-  const stats = {
-    income: managerEntries.filter(e => e.type === 'INCOME').reduce((acc, curr) => acc + Number(curr.amount), 0),
-    expense: managerEntries.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + Number(curr.amount), 0),
-  };
 
   const adminStats = {
     income: todayEntries.filter(e => e.type === 'INCOME').reduce((acc, curr) => acc + Number(curr.amount), 0),
@@ -91,6 +85,13 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        <Link href="/add" className="block">
+          <Button className="w-full h-14 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg flex items-center justify-center gap-2 group transition-all active:scale-95">
+            <PlusCircle className="h-5 w-5 group-hover:scale-110 transition-transform" />
+            <span className="font-bold">Add Daily Income</span>
+          </Button>
+        </Link>
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -163,10 +164,19 @@ export default function DashboardPage() {
   }
 
   const siteLaborers = laborers.filter(l => l.site_id === user?.site_id);
-  const allTimeStats = {
-    income: allExpenses.filter(e => e.manager_id === user?.id && e.type === 'INCOME').reduce((acc, curr) => acc + Number(curr.amount), 0),
-    expense: allExpenses.filter(e => e.manager_id === user?.id && e.type === 'EXPENSE').reduce((acc, curr) => acc + Number(curr.amount), 0),
-  };
+  
+  // Get today's income (daily budget) for this site
+  const todayIncome = todayExpenses.find(
+    e => e.type === 'INCOME' && e.site_id === user?.site_id
+  );
+  const dailyBudget = todayIncome ? Number(todayIncome.amount) : 0;
+  
+  // Calculate today's expenses
+  const todayExpense = managerEntries
+    .filter(e => e.type === 'EXPENSE')
+    .reduce((acc, curr) => acc + Number(curr.amount), 0);
+  
+  const remaining = dailyBudget - todayExpense;
 
   return (
     <div className="space-y-6">
@@ -209,11 +219,13 @@ export default function DashboardPage() {
         <Card className="bg-emerald-50 border-emerald-100 shadow-sm">
           <CardContent className="p-2.5">
             <div className="flex items-center gap-1.5 mb-1">
-              <ArrowUpRight className="h-3.5 w-3.5 text-emerald-600" />
-              <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide">Income</span>
+              <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />
+              <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide">Daily Budget</span>
             </div>
-            <p className="text-2xl font-bold text-emerald-900 leading-none">${allTimeStats.income}</p>
-            <p className="text-[10px] text-emerald-600 mt-1">Today: ${stats.income}</p>
+            <p className="text-2xl font-bold text-emerald-900 leading-none">${dailyBudget}</p>
+            <p className="text-[10px] text-emerald-600 mt-1">
+              {todayIncome ? 'Allocated today' : 'Not set yet'}
+            </p>
           </CardContent>
         </Card>
         
@@ -221,10 +233,29 @@ export default function DashboardPage() {
           <CardContent className="p-2.5">
             <div className="flex items-center gap-1.5 mb-1">
               <ArrowDownRight className="h-3.5 w-3.5 text-rose-600" />
-              <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wide">Expense</span>
+              <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wide">Today&apos;s Expense</span>
             </div>
-            <p className="text-2xl font-bold text-rose-900 leading-none">${allTimeStats.expense}</p>
-            <p className="text-[10px] text-rose-600 mt-1">Today: ${stats.expense}</p>
+            <p className="text-2xl font-bold text-rose-900 leading-none">${todayExpense}</p>
+            <p className="text-[10px] text-rose-600 mt-1">
+              {managerEntries.filter(e => e.type === 'EXPENSE').length} entries
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className={`col-span-2 ${remaining >= 0 ? 'bg-blue-50 border-blue-100' : 'bg-orange-50 border-orange-100'} shadow-sm`}>
+          <CardContent className="p-2.5">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Wallet className={`h-3.5 w-3.5 ${remaining >= 0 ? 'text-blue-600' : 'text-orange-600'}`} />
+              <span className={`text-[10px] font-bold ${remaining >= 0 ? 'text-blue-700' : 'text-orange-700'} uppercase tracking-wide`}>
+                {remaining >= 0 ? 'Remaining Budget' : 'Over Budget'}
+              </span>
+            </div>
+            <p className={`text-2xl font-bold ${remaining >= 0 ? 'text-blue-900' : 'text-orange-900'} leading-none`}>
+              ${Math.abs(remaining).toFixed(2)}
+            </p>
+            <p className={`text-[10px] ${remaining >= 0 ? 'text-blue-600' : 'text-orange-600'} mt-1`}>
+              {dailyBudget === 0 ? 'Waiting for daily budget' : remaining >= 0 ? 'Within budget' : 'Exceeded budget'}
+            </p>
           </CardContent>
         </Card>
       </div>
