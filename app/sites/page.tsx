@@ -1,12 +1,79 @@
 'use client';
 
-import React from 'react';
 import { useApp } from '@/lib/context';
 import { Card, CardContent } from '@/components/ui/card';
-import { Building2, Users, TrendingUp, MapPin } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Building2, Users, TrendingUp, MapPin, Plus, UserCog } from 'lucide-react';
+import { useSites, useManagers, useExpenses, useLaborers, useAddSite, useUpdateSite } from '@/lib/query/hooks';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export default function SitesPage() {
-  const { user, sites, managers, expenses, laborers } = useApp();
+  const { user } = useApp();
+  const { data: sites = [] } = useSites();
+  const { data: managers = [] } = useManagers();
+  const { data: expenses = [] } = useExpenses();
+  const { data: laborers = [] } = useLaborers();
+  
+  const addSite = useAddSite();
+  const updateSite = useUpdateSite();
+  
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [selectedSite, setSelectedSite] = useState<string | null>(null);
+  
+  const [newSite, setNewSite] = useState<{
+    name: string;
+    location: string;
+    manager_id: string;
+    status: 'ACTIVE' | 'ON_HOLD' | 'COMPLETED';
+  }>({
+    name: '',
+    location: '',
+    manager_id: '',
+    status: 'ACTIVE'
+  });
+  
+  const [assignManager, setAssignManager] = useState('');
+  
+  const handleAddSite = async () => {
+    if (!newSite.name || !newSite.location || !newSite.manager_id) {
+      toast.error('Please fill all fields');
+      return;
+    }
+    
+    try {
+      await addSite.mutateAsync(newSite);
+      toast.success('Site created successfully');
+      setIsAddDialogOpen(false);
+      setNewSite({ name: '', location: '', manager_id: '', status: 'ACTIVE' });
+    } catch (error) {
+      toast.error('Failed to create site');
+      console.error(error);
+    }
+  };
+  
+  const handleAssignManager = async () => {
+    if (!selectedSite || !assignManager) {
+      toast.error('Please select a manager');
+      return;
+    }
+    
+    try {
+      await updateSite.mutateAsync({ id: selectedSite, manager_id: assignManager });
+      toast.success('Manager assigned successfully');
+      setIsAssignDialogOpen(false);
+      setSelectedSite(null);
+      setAssignManager('');
+    } catch (error) {
+      toast.error('Failed to assign manager');
+      console.error(error);
+    }
+  };
 
   if (user?.role !== 'ADMIN') {
     return (
@@ -19,18 +86,89 @@ export default function SitesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">All Sites</h2>
-        <p className="text-sm text-zinc-500 mt-1">Manage construction sites and assignments</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">All Sites</h2>
+          <p className="text-sm text-zinc-500 mt-1">Manage construction sites and assignments</p>
+        </div>
+        
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Site
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Site</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="site-name">Site Name</Label>
+                <Input
+                  id="site-name"
+                  placeholder="Downtown Plaza"
+                  value={newSite.name}
+                  onChange={(e) => setNewSite({ ...newSite, name: e.target.value })}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="site-location">Location</Label>
+                <Input
+                  id="site-location"
+                  placeholder="Main Street, Downtown"
+                  value={newSite.location}
+                  onChange={(e) => setNewSite({ ...newSite, location: e.target.value })}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="site-manager">Assign Manager</Label>
+                <Select value={newSite.manager_id} onValueChange={(value) => setNewSite({ ...newSite, manager_id: value })}>
+                  <SelectTrigger id="site-manager">
+                    <SelectValue placeholder="Select a manager" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {managers.filter(m => m.role === 'MANAGER').map(manager => (
+                      <SelectItem key={manager.id} value={manager.id}>
+                        {manager.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="site-status">Status</Label>
+                <Select value={newSite.status} onValueChange={(value: 'ACTIVE' | 'ON_HOLD' | 'COMPLETED') => setNewSite({ ...newSite, status: value })}>
+                  <SelectTrigger id="site-status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ACTIVE">Active</SelectItem>
+                    <SelectItem value="ON_HOLD">On Hold</SelectItem>
+                    <SelectItem value="COMPLETED">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <Button onClick={handleAddSite} className="w-full" disabled={addSite.isPending}>
+                {addSite.isPending ? 'Creating...' : 'Create Site'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="space-y-4">
         {sites.map(site => {
-          const manager = managers.find(m => m.id === site.managerId);
-          const siteExpenses = expenses.filter(e => e.siteId === site.id);
-          const siteIncome = siteExpenses.filter(e => e.type === 'INCOME').reduce((acc, curr) => acc + curr.amount, 0);
-          const siteExpense = siteExpenses.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + curr.amount, 0);
-          const siteLaborers = laborers.filter(l => l.siteId === site.id);
+          const manager = managers.find(m => m.id === site.manager_id);
+          const siteExpenses = expenses.filter(e => e.site_id === site.id);
+          const siteIncome = siteExpenses.filter(e => e.type === 'INCOME').reduce((acc, curr) => acc + Number(curr.amount), 0);
+          const siteExpense = siteExpenses.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + Number(curr.amount), 0);
+          const siteLaborers = laborers.filter(l => l.site_id === site.id);
           const profit = siteIncome - siteExpense;
 
           return (
@@ -47,13 +185,26 @@ export default function SitesPage() {
                       <p className="text-sm">{site.location}</p>
                     </div>
                   </div>
-                  <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase ${
-                    site.status === 'ACTIVE' ? 'bg-green-100 text-green-700' :
-                    site.status === 'COMPLETED' ? 'bg-blue-100 text-blue-700' :
-                    'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {site.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedSite(site.id);
+                        setAssignManager(site.manager_id);
+                        setIsAssignDialogOpen(true);
+                      }}
+                    >
+                      <UserCog className="h-4 w-4" />
+                    </Button>
+                    <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase ${
+                      site.status === 'ACTIVE' ? 'bg-green-100 text-green-700' :
+                      site.status === 'COMPLETED' ? 'bg-blue-100 text-blue-700' :
+                      'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {site.status}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-3 mb-4 pb-4 border-b border-zinc-100">
@@ -90,6 +241,35 @@ export default function SitesPage() {
           );
         })}
       </div>
+      
+      <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assign Manager</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="assign-manager">Select Manager</Label>
+              <Select value={assignManager} onValueChange={setAssignManager}>
+                <SelectTrigger id="assign-manager">
+                  <SelectValue placeholder="Select a manager" />
+                </SelectTrigger>
+                <SelectContent>
+                  {managers.filter(m => m.role === 'MANAGER').map(manager => (
+                    <SelectItem key={manager.id} value={manager.id}>
+                      {manager.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <Button onClick={handleAssignManager} className="w-full" disabled={updateSite.isPending}>
+              {updateSite.isPending ? 'Assigning...' : 'Assign Manager'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

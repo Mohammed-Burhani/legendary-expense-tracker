@@ -1,31 +1,37 @@
 'use client';
 
-import React from 'react';
 import { useApp } from '@/lib/context';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, ArrowUpRight, ArrowDownRight, Users, Wallet, Building2, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
+import { useExpenses, useTodayExpenses, useSites, useLaborers, useManagers } from '@/lib/query/hooks';
 
 export default function DashboardPage() {
-  const { user, expenses, managers, sites, laborers } = useApp();
+  const { user } = useApp();
+  
+  const { data: allExpenses = [] } = useExpenses();
+  const { data: todayExpenses = [] } = useTodayExpenses();
+  const { data: sites = [] } = useSites();
+  const { data: laborers = [] } = useLaborers();
+  const { data: managers = [] } = useManagers();
 
   const today = new Date().toISOString().split('T')[0];
-  const todayEntries = expenses.filter(e => e.date.startsWith(today));
+  const todayEntries = todayExpenses;
   
-  const userSite = sites.find(s => s.id === user?.siteId);
-  const managerEntries = todayEntries.filter(e => e.managerId === user?.id);
+  const userSite = sites.find(s => s.id === user?.site_id);
+  const managerEntries = todayEntries.filter(e => e.manager_id === user?.id);
   
   const stats = {
-    income: managerEntries.filter(e => e.type === 'INCOME').reduce((acc, curr) => acc + curr.amount, 0),
-    expense: managerEntries.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + curr.amount, 0),
+    income: managerEntries.filter(e => e.type === 'INCOME').reduce((acc, curr) => acc + Number(curr.amount), 0),
+    expense: managerEntries.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + Number(curr.amount), 0),
   };
 
   const adminStats = {
-    income: todayEntries.filter(e => e.type === 'INCOME').reduce((acc, curr) => acc + curr.amount, 0),
-    expense: todayEntries.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + curr.amount, 0),
-    totalIncome: expenses.filter(e => e.type === 'INCOME').reduce((acc, curr) => acc + curr.amount, 0),
-    totalExpense: expenses.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + curr.amount, 0),
+    income: todayEntries.filter(e => e.type === 'INCOME').reduce((acc, curr) => acc + Number(curr.amount), 0),
+    expense: todayEntries.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + Number(curr.amount), 0),
+    totalIncome: allExpenses.filter(e => e.type === 'INCOME').reduce((acc, curr) => acc + Number(curr.amount), 0),
+    totalExpense: allExpenses.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + Number(curr.amount), 0),
   };
 
   if (user?.role === 'ADMIN') {
@@ -41,7 +47,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 border-none shadow-md">
+          <Card className="bg-linear-to-br from-emerald-500 to-emerald-600 border-none shadow-md">
             <CardContent className="p-2.5">
               <div className="flex items-center gap-1.5 mb-1">
                 <TrendingUp className="h-3.5 w-3.5 text-white/90" />
@@ -52,7 +58,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-rose-500 to-rose-600 border-none shadow-md">
+          <Card className="bg-linear-to-br from-rose-500 to-rose-600 border-none shadow-md">
             <CardContent className="p-2.5">
               <div className="flex items-center gap-1.5 mb-1">
                 <ArrowDownRight className="h-3.5 w-3.5 text-white/90" />
@@ -63,7 +69,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 border-none shadow-md">
+          <Card className="bg-linear-to-br from-blue-500 to-blue-600 border-none shadow-md">
             <CardContent className="p-2.5">
               <div className="flex items-center gap-1.5 mb-1">
                 <Building2 className="h-3.5 w-3.5 text-white/90" />
@@ -74,7 +80,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-500 to-purple-600 border-none shadow-md">
+          <Card className="bg-linear-to-br from-purple-500 to-purple-600 border-none shadow-md">
             <CardContent className="p-2.5">
               <div className="flex items-center gap-1.5 mb-1">
                 <Users className="h-3.5 w-3.5 text-white/90" />
@@ -98,12 +104,12 @@ export default function DashboardPage() {
           
           <div className="space-y-3">
             {sites.map(site => {
-              const manager = managers.find(m => m.id === site.managerId);
-              const siteExpenses = expenses.filter(e => e.siteId === site.id);
-              const siteIncome = siteExpenses.filter(e => e.type === 'INCOME').reduce((acc, curr) => acc + curr.amount, 0);
-              const siteExpense = siteExpenses.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + curr.amount, 0);
-              const siteLaborers = laborers.filter(l => l.siteId === site.id);
-              const todaySiteEntries = todayEntries.filter(e => e.siteId === site.id).length;
+              const manager = managers.find(m => m.id === site.manager_id);
+              const siteExpenses = allExpenses.filter(e => e.site_id === site.id);
+              const siteIncome = siteExpenses.filter(e => e.type === 'INCOME').reduce((acc, curr) => acc + Number(curr.amount), 0);
+              const siteExpense = siteExpenses.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + Number(curr.amount), 0);
+              const siteLaborers = laborers.filter(l => l.site_id === site.id);
+              const todaySiteEntries = todayEntries.filter(e => e.site_id === site.id).length;
 
               return (
                 <Card key={site.id} className="border-zinc-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
@@ -156,10 +162,10 @@ export default function DashboardPage() {
     );
   }
 
-  const siteLaborers = laborers.filter(l => l.siteId === user?.siteId);
+  const siteLaborers = laborers.filter(l => l.site_id === user?.site_id);
   const allTimeStats = {
-    income: expenses.filter(e => e.managerId === user?.id && e.type === 'INCOME').reduce((acc, curr) => acc + curr.amount, 0),
-    expense: expenses.filter(e => e.managerId === user?.id && e.type === 'EXPENSE').reduce((acc, curr) => acc + curr.amount, 0),
+    income: allExpenses.filter(e => e.manager_id === user?.id && e.type === 'INCOME').reduce((acc, curr) => acc + Number(curr.amount), 0),
+    expense: allExpenses.filter(e => e.manager_id === user?.id && e.type === 'EXPENSE').reduce((acc, curr) => acc + Number(curr.amount), 0),
   };
 
   return (
@@ -172,7 +178,7 @@ export default function DashboardPage() {
       </div>
 
       {userSite && (
-        <Card className="bg-gradient-to-br from-zinc-900 to-zinc-800 text-white border-none shadow-xl overflow-hidden relative">
+        <Card className="bg-linear-to-br from-zinc-900 to-zinc-800 text-white border-none shadow-xl overflow-hidden relative">
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <Building2 className="h-24 w-24" />
           </div>
@@ -252,7 +258,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             managerEntries.slice(0, 5).map((entry) => {
-              const laborer = entry.laborerId ? laborers.find(l => l.id === entry.laborerId) : null;
+              const laborer = entry.laborer_id ? laborers.find(l => l.id === entry.laborer_id) : null;
               
               return (
                 <div key={entry.id} className="flex items-center justify-between p-4 bg-white rounded-xl border border-zinc-100 shadow-sm hover:shadow-md transition-shadow">

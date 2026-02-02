@@ -1,12 +1,15 @@
 'use client';
 
-import React from 'react';
 import { useApp } from '@/lib/context';
 import { Card, CardContent } from '@/components/ui/card';
 import { Users, DollarSign, Calendar } from 'lucide-react';
+import { useLaborers, useExpenses, useSites } from '@/lib/query/hooks';
 
 export default function LaborersPage() {
-  const { user, laborers, expenses, sites } = useApp();
+  const { user } = useApp();
+  const { data: laborers = [] } = useLaborers(user?.site_id || undefined);
+  const { data: expenses = [] } = useExpenses();
+  const { data: sites = [] } = useSites();
 
   if (user?.role !== 'MANAGER') {
     return (
@@ -17,8 +20,8 @@ export default function LaborersPage() {
     );
   }
 
-  const siteLaborers = laborers.filter(l => l.siteId === user.siteId);
-  const userSite = sites.find(s => s.id === user.siteId);
+  const siteLaborers = laborers;
+  const userSite = sites.find(s => s.id === user.site_id);
 
   return (
     <div className="space-y-6">
@@ -36,8 +39,8 @@ export default function LaborersPage() {
       ) : (
         <div className="space-y-4">
           {siteLaborers.map(laborer => {
-            const laborerExpenses = expenses.filter(e => e.laborerId === laborer.id);
-            const totalPaid = laborerExpenses.reduce((acc, curr) => acc + curr.amount, 0);
+            const laborerExpenses = expenses.filter(e => e.laborer_id === laborer.id);
+            const totalPaid = laborerExpenses.reduce((acc, curr) => acc + Number(curr.amount), 0);
             const lastPayment = laborerExpenses.length > 0 
               ? new Date(laborerExpenses[0].date).toLocaleDateString()
               : 'No payments yet';
@@ -46,7 +49,7 @@ export default function LaborersPage() {
               <Card key={laborer.id} className="border-zinc-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
+                    <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
                       {laborer.name.charAt(0)}
                     </div>
                     <div className="flex-1">

@@ -1,0 +1,215 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '../supabase/client';
+import { queryKeys } from './keys';
+import type { Database } from '../supabase/types';
+
+type User = Database['public']['Tables']['users']['Row'];
+type Site = Database['public']['Tables']['sites']['Row'];
+type SiteInsert = Database['public']['Tables']['sites']['Insert'];
+type SiteUpdate = Database['public']['Tables']['sites']['Update'];
+type Expense = Database['public']['Tables']['expenses']['Row'];
+type ExpenseInsert = Database['public']['Tables']['expenses']['Insert'];
+
+// Users Queries
+export function useManagers() {
+  return useQuery({
+    queryKey: queryKeys.users.managers,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .in('role', ['ADMIN', 'MANAGER'])
+        .order('name');
+      
+      if (error) throw error;
+      return data as User[];
+    },
+  });
+}
+
+export function useLaborers(siteId?: string) {
+  return useQuery({
+    queryKey: queryKeys.users.laborers(siteId),
+    queryFn: async () => {
+      let query = supabase
+        .from('users')
+        .select('*')
+        .eq('role', 'LABORER')
+        .order('name');
+      
+      if (siteId) {
+        query = query.eq('site_id', siteId);
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as User[];
+    },
+    enabled: !!siteId || siteId === undefined,
+  });
+}
+
+// Sites Queries
+export function useSites() {
+  return useQuery({
+    queryKey: queryKeys.sites.all,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('sites')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data as Site[];
+    },
+  });
+}
+
+export function useSite(id?: string) {
+  return useQuery({
+    queryKey: queryKeys.sites.byId(id!),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('sites')
+        .select('*')
+        .eq('id', id!)
+        .single();
+      
+      if (error) throw error;
+      return data as Site;
+    },
+    enabled: !!id,
+  });
+}
+
+// Site Mutations
+export function useAddSite() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (site: SiteInsert) => {
+      const { data, error } = await supabase
+        .from('sites')
+        .insert(site)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data as Site;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.sites.all });
+    },
+  });
+}
+
+export function useUpdateSite() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: SiteUpdate & { id: string }) => {
+      const { data, error } = await supabase
+        .from('sites')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data as Site;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.sites.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sites.byId(data.id) });
+    },
+  });
+}
+
+// Expenses Queries
+export function useExpenses(managerId?: string) {
+  return useQuery({
+    queryKey: managerId ? queryKeys.expenses.byManager(managerId) : queryKeys.expenses.all,
+    queryFn: async () => {
+      let query = supabase
+        .from('expenses')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (managerId) {
+        query = query.eq('manager_id', managerId);
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as Expense[];
+    },
+  });
+}
+
+export function useTodayExpenses(managerId?: string) {
+  return useQuery({
+    queryKey: queryKeys.expenses.today(managerId),
+    queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
+      
+      let query = supabase
+        .from('expenses')
+        .select('*')
+        .eq('date', today)
+        .order('created_at', { ascending: false });
+      
+      if (managerId) {
+        query = query.eq('manager_id', managerId);
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as Expense[];
+    },
+  });
+}
+
+// Expense Mutations
+export function useAddExpense() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (expense: ExpenseInsert) => {
+      const { data, error } = await supabase
+        .from('expenses')
+        .insert(expense)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data as Expense;
+    },
+    onSuccess: (data) => {
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: queryKeys.expenses.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.expenses.byManager(data.manager_id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.expenses.today(data.manager_id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.expenses.today() });
+    },
+  });
+}
+
+export function useDeleteExpense() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('expenses')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => {
+      // Invalidate all expense queries
+      queryClient.invalidateQueries({ queryKey: queryKeys.expenses.all });
+    },
+  });
+}

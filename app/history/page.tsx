@@ -1,39 +1,48 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useApp } from '@/lib/context';
-import { format } from 'date-fns';
 import { ArrowUpRight, ArrowDownRight, Search, Building2, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { useExpenses, useManagers, useSites, useLaborers, useDeleteExpense } from '@/lib/query/hooks';
 
 export default function HistoryPage() {
-  const { user, expenses, managers, sites, laborers, deleteExpense } = useApp();
+  const { user } = useApp();
+  const { data: expenses = [] } = useExpenses(user?.role === 'ADMIN' ? undefined : user?.id);
+  const { data: managers = [] } = useManagers();
+  const { data: sites = [] } = useSites();
+  const { data: laborers = [] } = useLaborers();
+  const deleteExpenseMutation = useDeleteExpense();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
   const [filterSite, setFilterSite] = useState<string>('ALL');
   
-  const visibleExpenses = user?.role === 'ADMIN' 
-    ? expenses 
-    : expenses.filter(e => e.managerId === user?.id);
+  const visibleExpenses = expenses;
 
   let filteredExpenses = visibleExpenses.filter(e => {
     const matchesSearch = e.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       e.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user?.role === 'ADMIN' && managers.find(m => m.id === e.managerId)?.name.toLowerCase().includes(searchTerm.toLowerCase()));
+      (user?.role === 'ADMIN' && managers.find(m => m.id === e.manager_id)?.name.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesType = filterType === 'ALL' || e.type === filterType;
-    const matchesSite = filterSite === 'ALL' || e.siteId === filterSite;
+    const matchesSite = filterSite === 'ALL' || e.site_id === filterSite;
     
     return matchesSearch && matchesType && matchesSite;
   });
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this entry?')) {
-      deleteExpense(id);
-      toast.success('Entry deleted successfully');
+      try {
+        await deleteExpenseMutation.mutateAsync(id);
+        toast.success('Entry deleted successfully');
+      } catch (error) {
+        toast.error('Failed to delete entry');
+        console.error(error);
+      }
     }
   };
 
@@ -88,9 +97,10 @@ export default function HistoryPage() {
           </div>
         ) : (
           filteredExpenses.map((entry) => {
-            const manager = managers.find(m => m.id === entry.managerId);
-            const site = sites.find(s => s.id === entry.siteId);
-            const laborer = entry.laborerId ? laborers.find(l => l.id === entry.laborerId) : null;
+            const manager = managers.find(m => m.id === entry.manager_id);
+            const site = sites.find(s => s.id === entry.site_id);
+            const laborer = entry.laborer_id ? laborers.find(l => l.id === entry.laborer_id) : null;
+            const entryDate = new Date(entry.date);
             
             return (
               <div key={entry.id} className="flex items-center justify-between p-4 bg-white rounded-xl border border-zinc-100 shadow-sm hover:shadow-md transition-shadow group">
@@ -123,7 +133,9 @@ export default function HistoryPage() {
                         </>
                       )}
                       <span className="text-[10px] text-zinc-300">•</span>
-                      <p className="text-[10px] text-zinc-500 font-medium">{format(new Date(entry.date), 'MMM dd, yyyy')}</p>
+                      <p className="text-[10px] text-zinc-500 font-medium">
+                        {entryDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -131,12 +143,13 @@ export default function HistoryPage() {
                   <p className={`font-bold text-base ${entry.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'}`}>
                     {entry.type === 'INCOME' ? '+' : '-'}${entry.amount}
                   </p>
-                  {user?.role === 'MANAGER' && entry.managerId === user.id && (
+                  {user?.role === 'MANAGER' && entry.manager_id === user.id && (
                     <Button
                       variant="ghost"
                       size="icon"
                       className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 text-rose-500 hover:text-rose-700 hover:bg-rose-50"
                       onClick={() => handleDelete(entry.id)}
+                      disabled={deleteExpenseMutation.isPending}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

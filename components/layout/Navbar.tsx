@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { useApp } from '@/lib/context';
 import { 
   DropdownMenu, 
@@ -12,10 +11,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { User, ShieldCheck, Building2 } from 'lucide-react';
+import { useManagers, useSites } from '@/lib/query/hooks';
 
 export const Navbar = () => {
-  const { user, setUser, managers, sites } = useApp();
-  const userSite = sites.find(s => s.id === user?.siteId);
+  const { user, setUser } = useApp();
+  const { data: managers = [] } = useManagers();
+  const { data: sites = [] } = useSites();
+  const userSite = sites.find(s => s.id === user?.site_id);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-white px-4 py-3 flex items-center justify-between shadow-sm">

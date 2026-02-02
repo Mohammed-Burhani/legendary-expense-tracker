@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { useApp } from '@/lib/context';
 import { 
   BarChart, 
@@ -13,26 +12,25 @@ import {
   Cell,
   PieChart,
   Pie,
-  LineChart,
-  Line
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { useExpenses, useSites } from '@/lib/query/hooks';
 
 const COLORS = ['#000000', '#71717a', '#a1a1aa', '#d4d4d8', '#e4e4e7', '#10b981', '#f43f5e'];
 
 export default function AnalyticsPage() {
-  const { user, expenses, managers, sites } = useApp();
+  const { user } = useApp();
+  const { data: expenses = [] } = useExpenses(user?.role === 'ADMIN' ? undefined : user?.id);
+  const { data: sites = [] } = useSites();
 
-  const visibleExpenses = user?.role === 'ADMIN' 
-    ? expenses 
-    : expenses.filter(e => e.managerId === user?.id);
+  const visibleExpenses = expenses;
 
   // Category breakdown
   const expenseByCategory = visibleExpenses
     .filter(e => e.type === 'EXPENSE')
     .reduce((acc, curr) => {
-      acc[curr.category] = (acc[curr.category] || 0) + curr.amount;
+      acc[curr.category] = (acc[curr.category] || 0) + Number(curr.amount);
       return acc;
     }, {} as Record<string, number>);
 
@@ -42,7 +40,7 @@ export default function AnalyticsPage() {
 
   // Income vs Expense totals
   const totals = visibleExpenses.reduce((acc, curr) => {
-    acc[curr.type] = (acc[curr.type] || 0) + curr.amount;
+    acc[curr.type] = (acc[curr.type] || 0) + Number(curr.amount);
     return acc;
   }, { INCOME: 0, EXPENSE: 0 } as Record<string, number>);
 
@@ -55,8 +53,8 @@ export default function AnalyticsPage() {
 
   // Site performance (Admin only)
   const sitePerformance = sites.map(site => {
-    const siteExp = expenses.filter(e => e.siteId === site.id && e.type === 'EXPENSE').reduce((a, c) => a + c.amount, 0);
-    const siteInc = expenses.filter(e => e.siteId === site.id && e.type === 'INCOME').reduce((a, c) => a + c.amount, 0);
+    const siteExp = expenses.filter(e => e.site_id === site.id && e.type === 'EXPENSE').reduce((a, c) => a + Number(c.amount), 0);
+    const siteInc = expenses.filter(e => e.site_id === site.id && e.type === 'INCOME').reduce((a, c) => a + Number(c.amount), 0);
     return { 
       name: site.name.length > 15 ? site.name.substring(0, 15) + '...' : site.name, 
       Income: siteInc, 
@@ -72,7 +70,7 @@ export default function AnalyticsPage() {
         <p className="text-sm text-zinc-500 mt-1">Financial insights and trends</p>
       </div>
 
-      <Card className={`border-none shadow-lg ${netProfit >= 0 ? 'bg-gradient-to-br from-emerald-500 to-emerald-600' : 'bg-gradient-to-br from-rose-500 to-rose-600'}`}>
+      <Card className={`border-none shadow-lg ${netProfit >= 0 ? 'bg-linear-to-br from-emerald-500 to-emerald-600' : 'bg-linear-to-br from-rose-500 to-rose-600'}`}>
         <CardContent className="p-5 text-white">
           <div className="flex items-center gap-2 mb-2">
             {netProfit >= 0 ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}

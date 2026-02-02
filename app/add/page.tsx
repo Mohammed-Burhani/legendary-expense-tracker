@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useApp } from '@/lib/context';
@@ -9,9 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
+import { useSites, useLaborers, useAddExpense } from '@/lib/query/hooks';
 
 const validationSchema = Yup.object({
   type: Yup.string().oneOf(['EXPENSE', 'INCOME']).required('Required'),
@@ -22,8 +22,11 @@ const validationSchema = Yup.object({
 });
 
 export default function AddEntryPage() {
-  const { user, addExpense, laborers, sites } = useApp();
+  const { user } = useApp();
   const router = useRouter();
+  const { data: sites = [] } = useSites();
+  const { data: laborers = [] } = useLaborers(user?.site_id || undefined);
+  const addExpenseMutation = useAddExpense();
 
   if (user?.role !== 'MANAGER') {
     return (
@@ -34,8 +37,8 @@ export default function AddEntryPage() {
     );
   }
 
-  const userSite = sites.find(s => s.id === user.siteId);
-  const siteLaborers = laborers.filter(l => l.siteId === user.siteId);
+  const userSite = sites.find(s => s.id === user.site_id);
+  const siteLaborers = laborers;
 
   const formik = useFormik({
     initialValues: {
@@ -47,22 +50,30 @@ export default function AddEntryPage() {
       laborerId: '',
     },
     validationSchema,
-    onSubmit: (values) => {
-      if (!user.siteId) {
+    onSubmit: async (values) => {
+      if (!user.site_id) {
         toast.error('No site assigned to your account');
         return;
       }
 
-      addExpense({
-        ...values,
-        amount: Number(values.amount),
-        managerId: user.id,
-        siteId: user.siteId,
-        type: values.type as 'EXPENSE' | 'INCOME',
-        laborerId: values.laborerId || undefined,
-      });
-      toast.success(`${values.type === 'INCOME' ? 'Income' : 'Expense'} added successfully`);
-      router.push('/');
+      try {
+        await addExpenseMutation.mutateAsync({
+          amount: Number(values.amount),
+          description: values.description,
+          category: values.category,
+          date: values.date,
+          manager_id: user.id,
+          site_id: user.site_id,
+          type: values.type as 'EXPENSE' | 'INCOME',
+          laborer_id: values.laborerId || null,
+        });
+        
+        toast.success(`${values.type === 'INCOME' ? 'Income' : 'Expense'} added successfully`);
+        router.push('/');
+      } catch (error) {
+        toast.error('Failed to add entry');
+        console.error(error);
+      }
     },
   });
 
@@ -195,9 +206,9 @@ export default function AddEntryPage() {
               <Button 
                 type="submit" 
                 className="flex-1 h-12 text-base font-bold bg-zinc-950 hover:bg-zinc-800 text-white"
-                disabled={formik.isSubmitting}
+                disabled={formik.isSubmitting || addExpenseMutation.isPending}
               >
-                Save Entry
+                {addExpenseMutation.isPending ? 'Saving...' : 'Save Entry'}
               </Button>
             </div>
           </form>
