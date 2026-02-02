@@ -1,36 +1,141 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Legendary Builders - Expense Tracker
+
+A comprehensive expense tracking application designed for construction companies to manage expenses, income, sites, managers, and laborers.
+
+## Features
+
+### Admin Dashboard
+- **Overview of all sites** - View all construction sites with their status, location, and financial performance
+- **Manager tracking** - Monitor each manager's income and expenses across their assigned sites
+- **Site management** - Track active, completed, and on-hold projects
+- **Laborer overview** - See all laborers across all sites
+- **Financial analytics** - Comprehensive charts showing income vs expenses, category breakdowns, and site performance
+- **Real-time statistics** - Total income, expenses, active sites, and laborer count
+
+### Manager Dashboard
+- **Site-specific tracking** - Each manager tracks expenses for their assigned site
+- **Daily expense/income entry** - Add transactions with detailed categorization
+- **Laborer management** - View and track payments to laborers
+- **Category-based expenses** - Materials, Labor, Fuel, Equipment, Maintenance, Transport, Tools
+- **Income tracking** - Client payments, advances, milestone payments
+- **Transaction history** - Search and filter all transactions
+- **Analytics** - Visual charts showing spending patterns and income trends
+
+### Key Capabilities
+- **Role-based access control** - Admin and Manager roles with different permissions
+- **Site assignment** - Managers are assigned to specific construction sites
+- **Laborer tracking** - Track individual laborer payments and work history
+- **Transaction management** - Add, view, and delete expense/income entries
+- **Advanced filtering** - Filter by type (income/expense), site, date, and search terms
+- **Mobile-first design** - Optimized for mobile devices with touch-friendly UI
+- **Data persistence** - Local storage for offline capability
+
+## User Roles
+
+### Admin
+- View all sites, managers, and laborers
+- Access comprehensive analytics across all sites
+- Monitor manager performance
+- Track site profitability
+
+### Manager
+- Add daily expenses and income for assigned site
+- View site-specific laborers
+- Track transaction history
+- Access site-specific analytics
+- Delete own transactions
+
+## Technology Stack
+
+- **Framework**: Next.js 16 with React 19
+- **Styling**: Tailwind CSS 4
+- **UI Components**: Radix UI primitives
+- **Forms**: Formik with Yup validation
+- **Charts**: Recharts
+- **Icons**: Lucide React
+- **Notifications**: Sonner
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Default Users
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The application comes with pre-configured users for testing:
 
-## Learn More
+1. **Admin** - Full access to all sites and data
+2. **John Doe** (Manager) - Assigned to Downtown Plaza
+3. **Jane Smith** (Manager) - Assigned to Riverside Apartments
+4. **Mike Johnson** (Manager) - Assigned to Industrial Complex
 
-To learn more about Next.js, take a look at the following resources:
+Switch between users using the dropdown in the top-right corner.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Application Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+app/
+├── page.tsx              # Dashboard (role-based)
+├── add/page.tsx          # Add expense/income (managers only)
+├── history/page.tsx      # Transaction history
+├── analytics/page.tsx    # Financial analytics
+├── laborers/page.tsx     # Laborer management (managers)
+├── sites/page.tsx        # Site overview (admin)
+└── layout.tsx            # Root layout
 
-## Deploy on Vercel
+components/
+├── layout/
+│   ├── AppLayout.tsx     # Main layout wrapper
+│   ├── Navbar.tsx        # Top navigation
+│   └── MobileNav.tsx     # Bottom navigation
+└── ui/                   # Reusable UI components
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+lib/
+└── context.tsx           # Global state management
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Data Model
+
+### User
+- id, name, role (ADMIN/MANAGER/LABORER)
+- siteId (for managers and laborers)
+- managerId (for laborers)
+
+### Site
+- id, name, location
+- managerId, status (ACTIVE/COMPLETED/ON_HOLD)
+
+### Expense
+- id, amount, description, category
+- date, managerId, siteId
+- type (EXPENSE/INCOME)
+- laborerId (optional)
+
+## Future Enhancements
+
+- Backend integration with database
+- User authentication
+- Photo attachments for expenses
+- PDF report generation
+- Multi-currency support
+- Expense approval workflow
+- Budget tracking and alerts
+- Time tracking for laborers
+- Material inventory management
+
+## License
+
+Private - Legendary Builders

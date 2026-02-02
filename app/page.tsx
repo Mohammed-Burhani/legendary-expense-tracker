@@ -1,65 +1,287 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import React from 'react';
+import { useApp } from '@/lib/context';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { PlusCircle, ArrowUpRight, ArrowDownRight, Users, Wallet, Building2, TrendingUp } from 'lucide-react';
+import Link from 'next/link';
+
+export default function DashboardPage() {
+  const { user, expenses, managers, sites, laborers } = useApp();
+
+  const today = new Date().toISOString().split('T')[0];
+  const todayEntries = expenses.filter(e => e.date.startsWith(today));
+  
+  const userSite = sites.find(s => s.id === user?.siteId);
+  const managerEntries = todayEntries.filter(e => e.managerId === user?.id);
+  
+  const stats = {
+    income: managerEntries.filter(e => e.type === 'INCOME').reduce((acc, curr) => acc + curr.amount, 0),
+    expense: managerEntries.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + curr.amount, 0),
+  };
+
+  const adminStats = {
+    income: todayEntries.filter(e => e.type === 'INCOME').reduce((acc, curr) => acc + curr.amount, 0),
+    expense: todayEntries.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + curr.amount, 0),
+    totalIncome: expenses.filter(e => e.type === 'INCOME').reduce((acc, curr) => acc + curr.amount, 0),
+    totalExpense: expenses.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + curr.amount, 0),
+  };
+
+  if (user?.role === 'ADMIN') {
+    const activeSites = sites.filter(s => s.status === 'ACTIVE');
+    
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Admin Dashboard</h2>
+            <p className="text-sm text-zinc-500 mt-1">Overview of all sites and managers</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 border-none shadow-md">
+            <CardContent className="p-2.5">
+              <div className="flex items-center gap-1.5 mb-1">
+                <TrendingUp className="h-3.5 w-3.5 text-white/90" />
+                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Income</span>
+              </div>
+              <p className="text-2xl font-bold text-white leading-none">${adminStats.totalIncome}</p>
+              <p className="text-[10px] text-white/70 mt-1">Today: ${adminStats.income}</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-rose-500 to-rose-600 border-none shadow-md">
+            <CardContent className="p-2.5">
+              <div className="flex items-center gap-1.5 mb-1">
+                <ArrowDownRight className="h-3.5 w-3.5 text-white/90" />
+                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Expense</span>
+              </div>
+              <p className="text-2xl font-bold text-white leading-none">${adminStats.totalExpense}</p>
+              <p className="text-[10px] text-white/70 mt-1">Today: ${adminStats.expense}</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 border-none shadow-md">
+            <CardContent className="p-2.5">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Building2 className="h-3.5 w-3.5 text-white/90" />
+                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Sites</span>
+              </div>
+              <p className="text-2xl font-bold text-white leading-none">{activeSites.length}</p>
+              <p className="text-[10px] text-white/70 mt-1">Total: {sites.length}</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-500 to-purple-600 border-none shadow-md">
+            <CardContent className="p-2.5">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Users className="h-3.5 w-3.5 text-white/90" />
+                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Laborers</span>
+              </div>
+              <p className="text-2xl font-bold text-white leading-none">{laborers.length}</p>
+              <p className="text-[10px] text-white/70 mt-1">All sites</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <Building2 className="h-5 w-5" /> Sites & Managers
+            </h3>
+            <Link href="/sites" className="text-xs font-bold text-blue-600 uppercase hover:text-blue-700">
+              Manage Sites
+            </Link>
+          </div>
+          
+          <div className="space-y-3">
+            {sites.map(site => {
+              const manager = managers.find(m => m.id === site.managerId);
+              const siteExpenses = expenses.filter(e => e.siteId === site.id);
+              const siteIncome = siteExpenses.filter(e => e.type === 'INCOME').reduce((acc, curr) => acc + curr.amount, 0);
+              const siteExpense = siteExpenses.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + curr.amount, 0);
+              const siteLaborers = laborers.filter(l => l.siteId === site.id);
+              const todaySiteEntries = todayEntries.filter(e => e.siteId === site.id).length;
+
+              return (
+                <Card key={site.id} className="border-zinc-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h4 className="font-bold text-zinc-900 text-base">{site.name}</h4>
+                        <p className="text-xs text-zinc-500 mt-0.5">{site.location}</p>
+                      </div>
+                      <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase ${
+                        site.status === 'ACTIVE' ? 'bg-green-100 text-green-700' :
+                        site.status === 'COMPLETED' ? 'bg-blue-100 text-blue-700' :
+                        'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {site.status}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 mb-3 pb-3 border-b border-zinc-100">
+                      <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center">
+                        <Users className="h-4 w-4 text-zinc-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-zinc-900">{manager?.name}</p>
+                        <p className="text-[10px] text-zinc-500">{siteLaborers.length} laborers</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Income</p>
+                        <p className="text-sm font-bold text-emerald-600">${siteIncome}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Expense</p>
+                        <p className="text-sm font-bold text-rose-600">${siteExpense}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Today</p>
+                        <p className="text-sm font-bold text-blue-600">{todaySiteEntries} entries</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const siteLaborers = laborers.filter(l => l.siteId === user?.siteId);
+  const allTimeStats = {
+    income: expenses.filter(e => e.managerId === user?.id && e.type === 'INCOME').reduce((acc, curr) => acc + curr.amount, 0),
+    expense: expenses.filter(e => e.managerId === user?.id && e.type === 'EXPENSE').reduce((acc, curr) => acc + curr.amount, 0),
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Manager Dashboard</h2>
+          {userSite && <p className="text-sm text-zinc-500 mt-1">{userSite.name}</p>}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </div>
+
+      {userSite && (
+        <Card className="bg-gradient-to-br from-zinc-900 to-zinc-800 text-white border-none shadow-xl overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-8 opacity-10">
+            <Building2 className="h-24 w-24" />
+          </div>
+          <CardContent className="p-5 relative z-10">
+            <div className="flex items-center gap-2 mb-1">
+              <Building2 className="h-4 w-4 text-zinc-400" />
+              <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest">Site Information</p>
+            </div>
+            <h3 className="text-xl font-bold mb-1">{userSite.name}</h3>
+            <p className="text-sm text-zinc-400 mb-4">{userSite.location}</p>
+            
+            <div className="flex items-center gap-4 pt-3 border-t border-zinc-700">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-zinc-400" />
+                <span className="text-sm font-medium">{siteLaborers.length} Laborers</span>
+              </div>
+              <div className="w-px h-4 bg-zinc-700" />
+              <div className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${userSite.status === 'ACTIVE' ? 'bg-green-400' : 'bg-yellow-400'}`} />
+                <span className="text-sm font-medium">{userSite.status}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid grid-cols-2 gap-2">
+        <Card className="bg-emerald-50 border-emerald-100 shadow-sm">
+          <CardContent className="p-2.5">
+            <div className="flex items-center gap-1.5 mb-1">
+              <ArrowUpRight className="h-3.5 w-3.5 text-emerald-600" />
+              <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide">Income</span>
+            </div>
+            <p className="text-2xl font-bold text-emerald-900 leading-none">${allTimeStats.income}</p>
+            <p className="text-[10px] text-emerald-600 mt-1">Today: ${stats.income}</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-rose-50 border-rose-100 shadow-sm">
+          <CardContent className="p-2.5">
+            <div className="flex items-center gap-1.5 mb-1">
+              <ArrowDownRight className="h-3.5 w-3.5 text-rose-600" />
+              <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wide">Expense</span>
+            </div>
+            <p className="text-2xl font-bold text-rose-900 leading-none">${allTimeStats.expense}</p>
+            <p className="text-[10px] text-rose-600 mt-1">Today: ${stats.expense}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex gap-3">
+        <Link href="/add" className="flex-1">
+          <Button className="w-full h-14 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white shadow-lg flex items-center justify-center gap-2 group transition-all active:scale-95">
+            <PlusCircle className="h-5 w-5 group-hover:scale-110 transition-transform" />
+            <span className="font-bold">Add Entry</span>
+          </Button>
+        </Link>
+        <Link href="/laborers">
+          <Button className="h-14 rounded-xl bg-white border-2 border-zinc-200 text-zinc-950 hover:bg-zinc-50 shadow-sm px-6">
+            <Users className="h-5 w-5" />
+          </Button>
+        </Link>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-bold">Today&apos;s Activity</h3>
+          <Link href="/history" className="text-xs font-bold text-blue-600 uppercase hover:text-blue-700">View All</Link>
         </div>
-      </main>
+        
+        <div className="space-y-3">
+          {managerEntries.length === 0 ? (
+            <div className="py-12 text-center bg-white rounded-2xl border border-dashed border-zinc-200">
+              <Wallet className="h-12 w-12 text-zinc-300 mx-auto mb-3" />
+              <p className="text-zinc-400 font-medium">No entries for today yet</p>
+              <p className="text-zinc-300 text-xs mt-1">Start tracking your site expenses</p>
+            </div>
+          ) : (
+            managerEntries.slice(0, 5).map((entry) => {
+              const laborer = entry.laborerId ? laborers.find(l => l.id === entry.laborerId) : null;
+              
+              return (
+                <div key={entry.id} className="flex items-center justify-between p-4 bg-white rounded-xl border border-zinc-100 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2.5 rounded-xl ${entry.type === 'INCOME' ? 'bg-emerald-50' : 'bg-rose-50'}`}>
+                      {entry.type === 'INCOME' ? <ArrowUpRight className="h-5 w-5 text-emerald-600" /> : <ArrowDownRight className="h-5 w-5 text-rose-600" />}
+                    </div>
+                    <div>
+                      <p className="font-bold text-zinc-900 text-sm">{entry.description}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-[10px] text-zinc-500 font-medium">{entry.category}</p>
+                        {laborer && (
+                          <>
+                            <span className="text-[10px] text-zinc-300">•</span>
+                            <p className="text-[10px] text-zinc-500 font-medium">{laborer.name}</p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <p className={`font-bold text-base ${entry.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {entry.type === 'INCOME' ? '+' : '-'}${entry.amount}
+                  </p>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
     </div>
   );
 }
