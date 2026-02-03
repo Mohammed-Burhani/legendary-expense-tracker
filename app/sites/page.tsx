@@ -7,8 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, Users, TrendingUp, MapPin, Plus, UserCog } from 'lucide-react';
-import { useSites, useManagers, useExpenses, useLaborers, useAddSite, useUpdateSite } from '@/lib/query/hooks';
+import { Building2, Users, TrendingUp, MapPin, Plus, UserCog, UserPlus } from 'lucide-react';
+import { useSites, useManagers, useExpenses, useLaborers, useAddSite, useUpdateSite, useAddManager } from '@/lib/query/hooks';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -21,10 +21,13 @@ export default function SitesPage() {
   
   const addSite = useAddSite();
   const updateSite = useUpdateSite();
+  const addManager = useAddManager();
   
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [isAddManagerDialogOpen, setIsAddManagerDialogOpen] = useState(false);
   const [selectedSite, setSelectedSite] = useState<string | null>(null);
+  const [newManagerName, setNewManagerName] = useState('');
   
   const [newSite, setNewSite] = useState<{
     name: string;
@@ -71,6 +74,24 @@ export default function SitesPage() {
       setAssignManager('');
     } catch (error) {
       toast.error('Failed to assign manager');
+      console.error(error);
+    }
+  };
+
+  const handleAddManager = async () => {
+    if (!newManagerName.trim()) {
+      toast.error('Please enter manager name');
+      return;
+    }
+    
+    try {
+      const newManager = await addManager.mutateAsync({ name: newManagerName.trim() });
+      toast.success('Manager added successfully');
+      setNewSite({ ...newSite, manager_id: newManager.id });
+      setIsAddManagerDialogOpen(false);
+      setNewManagerName('');
+    } catch (error) {
+      toast.error('Failed to add manager');
       console.error(error);
     }
   };
@@ -125,7 +146,42 @@ export default function SitesPage() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="site-manager">Assign Manager</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="site-manager">Assign Manager</Label>
+                  <Dialog open={isAddManagerDialogOpen} onOpenChange={setIsAddManagerDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button type="button" variant="ghost" size="sm" className="h-7 gap-1 text-xs">
+                        <UserPlus className="h-3 w-3" />
+                        Add New
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Add New Manager</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 pt-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="new-manager-name">Manager Name</Label>
+                          <Input
+                            id="new-manager-name"
+                            placeholder="John Doe"
+                            value={newManagerName}
+                            onChange={(e) => setNewManagerName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleAddManager();
+                              }
+                            }}
+                          />
+                        </div>
+                        
+                        <Button onClick={handleAddManager} className="w-full" disabled={addManager.isPending}>
+                          {addManager.isPending ? 'Adding...' : 'Add Manager'}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
                 <Select value={newSite.manager_id} onValueChange={(value) => setNewSite({ ...newSite, manager_id: value })}>
                   <SelectTrigger id="site-manager">
                     <SelectValue placeholder="Select a manager" />

@@ -4,6 +4,7 @@ import { queryKeys } from './keys';
 import type { Database } from '../supabase/types';
 
 type User = Database['public']['Tables']['users']['Row'];
+type UserInsert = Database['public']['Tables']['users']['Insert'];
 type Site = Database['public']['Tables']['sites']['Row'];
 type SiteInsert = Database['public']['Tables']['sites']['Insert'];
 type SiteUpdate = Database['public']['Tables']['sites']['Update'];
@@ -46,6 +47,32 @@ export function useLaborers(siteId?: string) {
       return data as User[];
     },
     enabled: !!siteId || siteId === undefined,
+  });
+}
+
+// User Mutations
+export function useAddManager() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (manager: { name: string }) => {
+      const { data, error } = await supabase
+        .from('users')
+        .insert({
+          name: manager.name,
+          role: 'MANAGER',
+          site_id: null,
+          manager_id: null,
+        } as UserInsert)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data as User;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.managers });
+    },
   });
 }
 

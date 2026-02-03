@@ -98,9 +98,15 @@ export default function DashboardPage() {
             <h3 className="text-lg font-bold flex items-center gap-2">
               <Building2 className="h-5 w-5" /> Sites & Managers
             </h3>
-            <Link href="/sites" className="text-xs font-bold text-blue-600 uppercase hover:text-blue-700">
-              Manage Sites
-            </Link>
+            <div className="flex gap-2">
+              <Link href="/managers" className="text-xs font-bold text-purple-600 uppercase hover:text-purple-700">
+                Managers
+              </Link>
+              <span className="text-zinc-300">•</span>
+              <Link href="/sites" className="text-xs font-bold text-blue-600 uppercase hover:text-blue-700">
+                Sites
+              </Link>
+            </div>
           </div>
           
           <div className="flex flex-col gap-y-4">

@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, PlusCircle, BarChart2, List, Building2, Users } from 'lucide-react';
+import { Home, PlusCircle, BarChart2, List, Building2, Users, UserCog } from 'lucide-react';
 import { useApp } from '@/lib/context';
 
 export const MobileNav = () => {
@@ -13,6 +13,7 @@ export const MobileNav = () => {
   const adminNavItems = [
     { label: 'Home', icon: Home, href: '/' },
     { label: 'Sites', icon: Building2, href: '/sites' },
+    { label: 'Managers', icon: UserCog, href: '/managers' },
     { label: 'History', icon: List, href: '/history' },
     { label: 'Stats', icon: BarChart2, href: '/analytics' },
   ];
