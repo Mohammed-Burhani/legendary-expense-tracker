@@ -4,6 +4,7 @@ import { AppProvider } from "@/lib/context";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { QueryProvider } from "@/lib/query/provider";
 import { Toaster } from "@/components/ui/sonner";
+import { RegisterServiceWorker } from "./register-sw";
 
 export const metadata: Metadata = {
   title: "Legendary Builders - Expense Tracker",
@@ -34,6 +35,7 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>
       <body className="antialiased">
+        <RegisterServiceWorker />
         <QueryProvider>
           <AppProvider>
             <AppLayout>
