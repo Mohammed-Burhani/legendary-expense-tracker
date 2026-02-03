@@ -10,11 +10,11 @@ import {
   DropdownMenuLabel
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { User, ShieldCheck, Building2 } from 'lucide-react';
+import { User, ShieldCheck, Building2, LogOut } from 'lucide-react';
 import { useManagers, useSites } from '@/lib/query/hooks';
 
 export const Navbar = () => {
-  const { user, setUser } = useApp();
+  const { user, setUser, logout } = useApp();
   const { data: managers = [] } = useManagers();
   const { data: sites = [] } = useSites();
   const userSite = sites.find(s => s.id === user?.site_id);
@@ -72,6 +72,11 @@ export const Navbar = () => {
               </div>
             </DropdownMenuItem>
           ))}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600">
+            <LogOut className="h-4 w-4 mr-2" />
+            Logout
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>

@@ -103,7 +103,7 @@ export default function DashboardPage() {
             </Link>
           </div>
           
-          <div className="space-y-3">
+          <div className="flex flex-col gap-y-4">
             {sites.map(site => {
               const manager = managers.find(m => m.id === site.manager_id);
               const siteExpenses = allExpenses.filter(e => e.site_id === site.id);
@@ -113,48 +113,50 @@ export default function DashboardPage() {
               const todaySiteEntries = todayEntries.filter(e => e.site_id === site.id).length;
 
               return (
-                <Card key={site.id} className="border-zinc-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h4 className="font-bold text-zinc-900 text-base">{site.name}</h4>
-                        <p className="text-xs text-zinc-500 mt-0.5">{site.location}</p>
+                <Link key={site.id} href={`/sites/${site.id}`}>
+                  <Card className="border-zinc-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h4 className="font-bold text-zinc-900 text-base">{site.name}</h4>
+                          <p className="text-xs text-zinc-500 mt-0.5">{site.location}</p>
+                        </div>
+                        <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase ${
+                          site.status === 'ACTIVE' ? 'bg-green-100 text-green-700' :
+                          site.status === 'COMPLETED' ? 'bg-blue-100 text-blue-700' :
+                          'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          {site.status}
+                        </span>
                       </div>
-                      <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase ${
-                        site.status === 'ACTIVE' ? 'bg-green-100 text-green-700' :
-                        site.status === 'COMPLETED' ? 'bg-blue-100 text-blue-700' :
-                        'bg-yellow-100 text-yellow-700'
-                      }`}>
-                        {site.status}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 mb-3 pb-3 border-b border-zinc-100">
-                      <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center">
-                        <Users className="h-4 w-4 text-zinc-600" />
+                      
+                      <div className="flex items-center gap-2 mb-3 pb-3 border-b border-zinc-100">
+                        <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center">
+                          <Users className="h-4 w-4 text-zinc-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-zinc-900">{manager?.name}</p>
+                          <p className="text-[10px] text-zinc-500">{siteLaborers.length} laborers</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs font-bold text-zinc-900">{manager?.name}</p>
-                        <p className="text-[10px] text-zinc-500">{siteLaborers.length} laborers</p>
-                      </div>
-                    </div>
 
-                    <div className="grid grid-cols-3 gap-3">
-                      <div>
-                        <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Income</p>
-                        <p className="text-sm font-bold text-emerald-600">${siteIncome}</p>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Income</p>
+                          <p className="text-sm font-bold text-emerald-600">${siteIncome}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Expense</p>
+                          <p className="text-sm font-bold text-rose-600">${siteExpense}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Today</p>
+                          <p className="text-sm font-bold text-blue-600">{todaySiteEntries} entries</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Expense</p>
-                        <p className="text-sm font-bold text-rose-600">${siteExpense}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Today</p>
-                        <p className="text-sm font-bold text-blue-600">{todaySiteEntries} entries</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </Link>
               );
             })}
           </div>
