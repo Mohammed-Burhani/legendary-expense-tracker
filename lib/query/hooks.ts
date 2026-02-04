@@ -65,7 +65,7 @@ export function useAddManager() {
           site_id: null,
           manager_id: null,
         } as UserInsert)
-        .select()
+        .select("*")
         .single();
       
       if (error) throw error;
@@ -119,7 +119,7 @@ export function useAddSite() {
       const { data, error } = await supabase
         .from('sites')
         .insert(site)
-        .select()
+        .select("*")
         .single();
       
       if (error) throw error;
@@ -140,7 +140,7 @@ export function useUpdateSite() {
         .from('sites')
         .update(updates)
         .eq('id', id)
-        .select()
+        .select("*")
         .single();
       
       if (error) throw error;
@@ -206,7 +206,7 @@ export function useAddExpense() {
       const { data, error } = await supabase
         .from('expenses')
         .insert(expense)
-        .select()
+        .select("*")
         .single();
       
       if (error) throw error;

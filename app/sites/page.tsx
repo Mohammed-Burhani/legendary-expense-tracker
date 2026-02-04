@@ -11,6 +11,7 @@ import { Building2, Users, TrendingUp, MapPin, Plus, UserCog, UserPlus } from 'l
 import { useSites, useManagers, useExpenses, useLaborers, useAddSite, useUpdateSite, useAddManager } from '@/lib/query/hooks';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase/client';
 
 export default function SitesPage() {
   const { user } = useApp();
@@ -50,7 +51,16 @@ export default function SitesPage() {
     }
     
     try {
-      await addSite.mutateAsync(newSite);
+      const createdSite = await addSite.mutateAsync(newSite);
+      
+      // Update the manager's site_id
+      const { error: managerError } = await supabase
+        .from('users')
+        .update({ site_id: createdSite.id })
+        .eq('id', newSite.manager_id);
+      
+      if (managerError) throw managerError;
+      
       toast.success('Site created successfully');
       setIsAddDialogOpen(false);
       setNewSite({ name: '', location: '', manager_id: '', status: 'ACTIVE' });
@@ -67,7 +77,30 @@ export default function SitesPage() {
     }
     
     try {
+      const site = sites.find(s => s.id === selectedSite);
+      const oldManagerId = site?.manager_id;
+      
+      // Update the site's manager_id
       await updateSite.mutateAsync({ id: selectedSite, manager_id: assignManager });
+      
+      // Update the new manager's site_id
+      const { error: newManagerError } = await supabase
+        .from('users')
+        .update({ site_id: selectedSite })
+        .eq('id', assignManager);
+      
+      if (newManagerError) throw newManagerError;
+      
+      // Clear the old manager's site_id if there was one
+      if (oldManagerId && oldManagerId !== assignManager) {
+        const { error: oldManagerError } = await supabase
+          .from('users')
+          .update({ site_id: null })
+          .eq('id', oldManagerId);
+        
+        if (oldManagerError) throw oldManagerError;
+      }
+      
       toast.success('Manager assigned successfully');
       setIsAssignDialogOpen(false);
       setSelectedSite(null);
