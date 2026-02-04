@@ -177,7 +177,7 @@ export default function AddEntryPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="amount" className="text-sm font-bold">Daily Budget Amount ($)</Label>
+                <Label htmlFor="amount" className="text-sm font-bold">Daily Budget Amount (₹)</Label>
                 <Input
                   id="amount"
                   name="amount"
@@ -259,7 +259,7 @@ export default function AddEntryPage() {
         <CardContent className="p-5">
           <form onSubmit={managerFormik.handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="amount" className="text-sm font-bold">Amount ($)</Label>
+              <Label htmlFor="amount" className="text-sm font-bold">Amount (₹)</Label>
               <Input
                 id="amount"
                 name="amount"

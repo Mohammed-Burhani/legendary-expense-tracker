@@ -65,7 +65,7 @@ export default function LaborersPage() {
                       </div>
                       <div>
                         <p className="text-[10px] text-emerald-700 font-bold uppercase">Total Paid</p>
-                        <p className="text-base font-bold text-emerald-900">${totalPaid}</p>
+                        <p className="text-base font-bold text-emerald-900">₹{totalPaid}</p>
                       </div>
                     </div>
 

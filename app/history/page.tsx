@@ -154,7 +154,7 @@ export default function HistoryPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <p className={`font-bold text-base ${entry.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {entry.type === 'INCOME' ? '+' : '-'}${entry.amount}
+                    {entry.type === 'INCOME' ? '+' : '-'}₹{entry.amount}
                   </p>
                   {canDelete && (
                     <Button

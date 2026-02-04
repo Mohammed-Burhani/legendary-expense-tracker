@@ -80,16 +80,16 @@ export default function AnalyticsPage() {
             {netProfit >= 0 ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
             <span className="text-xs font-bold uppercase tracking-wider opacity-90">Net {netProfit >= 0 ? 'Profit' : 'Loss'}</span>
           </div>
-          <p className="text-3xl font-bold mb-3">${Math.abs(netProfit).toFixed(2)}</p>
+          <p className="text-3xl font-bold mb-3">₹{Math.abs(netProfit).toFixed(2)}</p>
           <div className="flex items-center gap-4 text-sm">
             <div>
               <p className="text-xs opacity-75">Total Income</p>
-              <p className="font-bold">${totals.INCOME}</p>
+              <p className="font-bold">₹{totals.INCOME}</p>
             </div>
             <div className="w-px h-8 bg-white/20" />
             <div>
               <p className="text-xs opacity-75">Total Expense</p>
-              <p className="font-bold">${totals.EXPENSE}</p>
+              <p className="font-bold">₹{totals.EXPENSE}</p>
             </div>
           </div>
         </CardContent>
@@ -148,7 +148,7 @@ export default function AnalyticsPage() {
                   <div key={entry.name} className="flex items-center gap-1.5">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                     <span className="text-[10px] font-bold text-zinc-600 uppercase">{entry.name}</span>
-                    <span className="text-[10px] font-bold text-zinc-400">${entry.value}</span>
+                    <span className="text-[10px] font-bold text-zinc-400">₹{entry.value}</span>
                   </div>
                 ))}
               </div>

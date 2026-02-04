@@ -47,8 +47,8 @@ export default function DashboardPage() {
                 <TrendingUp className="h-3.5 w-3.5 text-white/90" />
                 <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Income</span>
               </div>
-              <p className="text-2xl font-bold text-white leading-none">${adminStats.totalIncome}</p>
-              <p className="text-[10px] text-white/70 mt-1">Today: ${adminStats.income}</p>
+              <p className="text-2xl font-bold text-white leading-none">₹{adminStats.totalIncome}</p>
+              <p className="text-[10px] text-white/70 mt-1">Today: ₹{adminStats.income}</p>
             </CardContent>
           </Card>
           
@@ -58,8 +58,8 @@ export default function DashboardPage() {
                 <ArrowDownRight className="h-3.5 w-3.5 text-white/90" />
                 <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Expense</span>
               </div>
-              <p className="text-2xl font-bold text-white leading-none">${adminStats.totalExpense}</p>
-              <p className="text-[10px] text-white/70 mt-1">Today: ${adminStats.expense}</p>
+              <p className="text-2xl font-bold text-white leading-none">₹{adminStats.totalExpense}</p>
+              <p className="text-[10px] text-white/70 mt-1">Today: ₹{adminStats.expense}</p>
             </CardContent>
           </Card>
 
@@ -149,11 +149,11 @@ export default function DashboardPage() {
                       <div className="grid grid-cols-3 gap-3">
                         <div>
                           <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Income</p>
-                          <p className="text-sm font-bold text-emerald-600">${siteIncome}</p>
+                          <p className="text-sm font-bold text-emerald-600">₹{siteIncome}</p>
                         </div>
                         <div>
                           <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Expense</p>
-                          <p className="text-sm font-bold text-rose-600">${siteExpense}</p>
+                          <p className="text-sm font-bold text-rose-600">₹{siteExpense}</p>
                         </div>
                         <div>
                           <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Today</p>
@@ -230,7 +230,7 @@ export default function DashboardPage() {
               <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />
               <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide">Daily Budget</span>
             </div>
-            <p className="text-2xl font-bold text-emerald-900 leading-none">${dailyBudget}</p>
+            <p className="text-2xl font-bold text-emerald-900 leading-none">₹{dailyBudget}</p>
             <p className="text-[10px] text-emerald-600 mt-1">
               {todayIncome ? 'Allocated today' : 'Not set yet'}
             </p>
@@ -243,7 +243,7 @@ export default function DashboardPage() {
               <ArrowDownRight className="h-3.5 w-3.5 text-rose-600" />
               <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wide">Today&apos;s Expense</span>
             </div>
-            <p className="text-2xl font-bold text-rose-900 leading-none">${todayExpense}</p>
+            <p className="text-2xl font-bold text-rose-900 leading-none">₹{todayExpense}</p>
             <p className="text-[10px] text-rose-600 mt-1">
               {managerEntries.filter(e => e.type === 'EXPENSE').length} entries
             </p>
@@ -259,7 +259,7 @@ export default function DashboardPage() {
               </span>
             </div>
             <p className={`text-2xl font-bold ${remaining >= 0 ? 'text-blue-900' : 'text-orange-900'} leading-none`}>
-              ${Math.abs(remaining).toFixed(2)}
+              ₹{Math.abs(remaining).toFixed(2)}
             </p>
             <p className={`text-[10px] ${remaining >= 0 ? 'text-blue-600' : 'text-orange-600'} mt-1`}>
               {dailyBudget === 0 ? 'Waiting for daily budget' : remaining >= 0 ? 'Within budget' : 'Exceeded budget'}
@@ -319,7 +319,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <p className={`font-bold text-base ${entry.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {entry.type === 'INCOME' ? '+' : '-'}${entry.amount}
+                    {entry.type === 'INCOME' ? '+' : '-'}₹{entry.amount}
                   </p>
                 </div>
               );

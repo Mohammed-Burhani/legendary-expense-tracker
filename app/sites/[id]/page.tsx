@@ -117,7 +117,7 @@ export default function SiteDetailsPage() {
               <span className="text-[10px] font-semibold uppercase tracking-wider opacity-90">Income</span>
               <TrendingUp className="h-3.5 w-3.5 opacity-80" />
             </div>
-            <p className="text-xl font-bold">${stats.income.toLocaleString()}</p>
+            <p className="text-xl font-bold">₹{stats.income.toLocaleString()}</p>
           </CardContent>
         </Card>
         
@@ -127,7 +127,7 @@ export default function SiteDetailsPage() {
               <span className="text-[10px] font-semibold uppercase tracking-wider opacity-90">Expense</span>
               <TrendingDown className="h-3.5 w-3.5 opacity-80" />
             </div>
-            <p className="text-xl font-bold">${stats.expense.toLocaleString()}</p>
+            <p className="text-xl font-bold">₹{stats.expense.toLocaleString()}</p>
           </CardContent>
         </Card>
 
@@ -137,7 +137,7 @@ export default function SiteDetailsPage() {
               <span className="text-[10px] font-semibold uppercase tracking-wider opacity-90">Net</span>
               <Wallet className="h-3.5 w-3.5 opacity-80" />
             </div>
-            <p className="text-xl font-bold">${Math.abs(stats.net).toLocaleString()}</p>
+            <p className="text-xl font-bold">₹{Math.abs(stats.net).toLocaleString()}</p>
           </CardContent>
         </Card>
       </div>
@@ -251,7 +251,7 @@ export default function SiteDetailsPage() {
                       <div className={`flex-shrink-0 font-bold text-base ${
                         entry.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'
                       }`}>
-                        {entry.type === 'INCOME' ? '+' : '-'}${Number(entry.amount).toLocaleString()}
+                        {entry.type === 'INCOME' ? '+' : '-'}₹{Number(entry.amount).toLocaleString()}
                       </div>
                     </div>
                   </CardContent>
