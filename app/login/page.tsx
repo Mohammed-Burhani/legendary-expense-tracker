@@ -5,22 +5,19 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { useApp } from '@/lib/context';
-import { useManagers } from '@/lib/query/hooks';
-import { Building2, LogIn, AlertCircle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Building2, LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { supabase } from '@/lib/supabase/client';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setUser } = useApp();
-  const { data: managers = [] } = useManagers();
   
-  const [userId, setUserId] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // Get all users who can login (ADMIN and MANAGER roles)
-  const loginUsers = managers.filter(u => u.role === 'ADMIN' || u.role === 'MANAGER');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,21 +25,37 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const selectedUser = loginUsers.find(u => u.id === userId);
-      
-      if (!selectedUser) {
-        setError('Please select a valid user');
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        setError(signInError.message);
         setLoading(false);
         return;
       }
 
-      // Set user in context
-      setUser(selectedUser);
-      
-      // Redirect to home
-      router.push('/');
-    } catch {
-      setError('Login failed. Please try again.');
+      if (data.user) {
+        // Check if user has a profile in users table
+        const { data: profile, error: profileError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('auth_id', data.user.id)
+          .single();
+
+        if (profileError || !profile) {
+          setError('User profile not found. Please contact an administrator.');
+          await supabase.auth.signOut();
+          setLoading(false);
+          return;
+        }
+
+        // Redirect to home
+        router.push('/');
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
       setLoading(false);
     }
   };
@@ -72,27 +85,50 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="user">Select User</Label>
-              <select
-                id="user"
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="your.email@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
-              >
-                <option value="">Choose a user...</option>
-                {loginUsers.map(user => (
-                  <option key={user.id} value={user.id}>
-                    {user.name} ({user.role})
-                  </option>
-                ))}
-              </select>
+                autoComplete="email"
+                className="h-11"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                  className="h-11 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-700"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <Button
               type="submit"
               className="w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white font-bold rounded-lg flex items-center justify-center gap-2"
-              disabled={loading || !userId}
+              disabled={loading}
             >
               <LogIn className="h-5 w-5" />
               {loading ? 'Signing in...' : 'Sign In'}
@@ -101,7 +137,7 @@ export default function LoginPage() {
 
           <div className="mt-6 pt-6 border-t border-zinc-200">
             <p className="text-xs text-zinc-500 text-center">
-              Demo users available for testing
+              Contact your administrator for account access
             </p>
           </div>
         </CardContent>

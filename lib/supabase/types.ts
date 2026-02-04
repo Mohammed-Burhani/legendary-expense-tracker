@@ -16,6 +16,8 @@ export type Database = {
           role: 'ADMIN' | 'MANAGER' | 'LABORER'
           site_id: string | null
           manager_id: string | null
+          email: string | null
+          auth_id: string | null
           created_at: string
           updated_at: string
         }
@@ -25,6 +27,8 @@ export type Database = {
           role: 'ADMIN' | 'MANAGER' | 'LABORER'
           site_id?: string | null
           manager_id?: string | null
+          email?: string | null
+          auth_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -34,6 +38,8 @@ export type Database = {
           role?: 'ADMIN' | 'MANAGER' | 'LABORER'
           site_id?: string | null
           manager_id?: string | null
+          email?: string | null
+          auth_id?: string | null
           created_at?: string
           updated_at?: string
         }

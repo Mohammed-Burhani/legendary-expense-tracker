@@ -11,11 +11,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { User, ShieldCheck, Building2, LogOut } from 'lucide-react';
-import { useManagers, useSites } from '@/lib/query/hooks';
+import { useSites } from '@/lib/query/hooks';
 
 export const Navbar = () => {
-  const { user, setUser, logout } = useApp();
-  const { data: managers = [] } = useManagers();
+  const { user, logout } = useApp();
   const { data: sites = [] } = useSites();
   const userSite = sites.find(s => s.id === user?.site_id);
 
@@ -53,25 +52,11 @@ export const Navbar = () => {
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">{user?.name}</p>
               <p className="text-xs leading-none text-muted-foreground">{user?.role}</p>
+              {user?.email && (
+                <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+              )}
             </div>
           </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuLabel className="text-xs text-zinc-500 font-bold uppercase">Switch User</DropdownMenuLabel>
-          {managers.map((m) => (
-            <DropdownMenuItem 
-              key={m.id} 
-              onClick={() => setUser(m)}
-              className={user?.id === m.id ? 'bg-zinc-100' : ''}
-            >
-              <div className="flex items-center gap-2">
-                {m.role === 'ADMIN' ? <ShieldCheck className="h-4 w-4" /> : <User className="h-4 w-4" />}
-                <div>
-                  <p className="text-sm font-medium">{m.name}</p>
-                  <p className="text-xs text-zinc-500">{m.role}</p>
-                </div>
-              </div>
-            </DropdownMenuItem>
-          ))}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600">
             <LogOut className="h-4 w-4 mr-2" />

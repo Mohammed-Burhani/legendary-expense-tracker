@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { supabase } from './supabase/client';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 type Role = 'ADMIN' | 'MANAGER' | 'LABORER';
 
@@ -9,35 +11,86 @@ export interface User {
   id: string;
   name: string;
   role: Role;
+  email: string;
   site_id?: string | null;
   manager_id?: string | null;
+  auth_id?: string;
 }
 
 interface AppContextType {
   user: User | null;
-  setUser: (user: User | null) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   isLoading: boolean;
+  authUser: SupabaseUser | null;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [authUser, setAuthUser] = useState<SupabaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
-  // Load user from localStorage on mount
+  // Load user from Supabase Auth on mount
   useEffect(() => {
-    const loadUser = () => {
-      const savedUser = localStorage.getItem('legendary_builders_user');
-      if (savedUser) {
-        setUser(JSON.parse(savedUser));
+    const loadUser = async () => {
+      try {
+        // Get current session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          setAuthUser(session.user);
+          
+          // Fetch user profile from users table
+          const { data: profile, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('auth_id', session.user.id)
+            .single();
+
+          if (error) {
+            console.error('Error fetching user profile:', error);
+          } else if (profile) {
+            setUser(profile as User);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading user:', error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
+
     loadUser();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          setAuthUser(session.user);
+          
+          // Fetch user profile
+          const { data: profile } = await supabase
+            .from('users')
+            .select('*')
+            .eq('auth_id', session.user.id)
+            .single();
+
+          if (profile) {
+            setUser(profile as User);
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setAuthUser(null);
+          setUser(null);
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Redirect to login if not authenticated
@@ -47,21 +100,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [user, isLoading, pathname, router]);
 
-  // Save user to localStorage when it changes
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('legendary_builders_user', JSON.stringify(user));
-    }
-  }, [user]);
-
-  const logout = () => {
-    localStorage.removeItem('legendary_builders_user');
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
+    setAuthUser(null);
     router.push('/login');
   };
 
   return (
-    <AppContext.Provider value={{ user, setUser, logout, isLoading }}>
+    <AppContext.Provider value={{ user, logout, isLoading, authUser }}>
       {children}
     </AppContext.Provider>
   );

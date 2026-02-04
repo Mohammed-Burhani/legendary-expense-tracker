@@ -82,10 +82,10 @@ export default function DashboardPage() {
             <CardContent className="p-2.5">
               <div className="flex items-center gap-1.5 mb-1">
                 <TrendingUp className="h-3.5 w-3.5 text-white/90" />
-                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Income</span>
+                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Inward</span>
               </div>
               <p className="text-2xl font-bold text-white leading-none">₹{adminStats.totalIncome}</p>
-              <p className="text-[10px] text-white/70 mt-1">Today: ₹{adminStats.income}</p>
+              <p className="text-[10px] text-white/70 mt-1">Balance: ₹{adminStats.income}</p>
             </CardContent>
           </Card>
           
@@ -93,7 +93,7 @@ export default function DashboardPage() {
             <CardContent className="p-2.5">
               <div className="flex items-center gap-1.5 mb-1">
                 <ArrowDownRight className="h-3.5 w-3.5 text-white/90" />
-                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Expense</span>
+                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Outward</span>
               </div>
               <p className="text-2xl font-bold text-white leading-none">₹{adminStats.totalExpense}</p>
               <p className="text-[10px] text-white/70 mt-1">Today: ₹{adminStats.expense}</p>
