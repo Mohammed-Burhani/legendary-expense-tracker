@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useApp } from '@/lib/context';
@@ -11,7 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
-import { useSites, useLaborers, useAddExpense, useTodayExpenses } from '@/lib/query/hooks';
+import { useSites, useLaborers, useAddExpense, useTodayExpenses, usePendingCarryforward } from '@/lib/query/hooks';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const expenseValidationSchema = Yup.object({
   amount: Yup.number().positive('Must be positive').required('Required'),
@@ -37,6 +40,15 @@ export default function AddEntryPage() {
 
   const isAdmin = user?.role === 'ADMIN';
   const isManager = user?.role === 'MANAGER';
+
+  const [selectedSiteForCarryforward, setSelectedSiteForCarryforward] = useState<string>('');
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Get pending carryforward for selected site
+  const { data: pendingCarryforward } = usePendingCarryforward(
+    selectedSiteForCarryforward || undefined,
+    today
+  );
 
   // Check if admin has already added income for a site today
   const hasIncomeToday = (siteId: string) => {
@@ -64,9 +76,16 @@ export default function AddEntryPage() {
       }
 
       try {
+        const baseAmount = Number(values.amount);
+        const carryforwardAmount = pendingCarryforward?.amount || 0;
+        const totalAmount = baseAmount + Number(carryforwardAmount);
+
+        // Add income with total amount (base + carryforward)
         await addExpenseMutation.mutateAsync({
-          amount: Number(values.amount),
-          description: values.description,
+          amount: totalAmount,
+          description: carryforwardAmount > 0 
+            ? `${values.description} (includes ₹${carryforwardAmount} carryforward from ${new Date(pendingCarryforward.from_date).toLocaleDateString()})`
+            : values.description,
           category: 'Daily Budget',
           date: values.date,
           manager_id: user.id,
@@ -75,7 +94,11 @@ export default function AddEntryPage() {
           laborer_id: null,
         });
         
-        toast.success('Daily income added successfully');
+        toast.success(
+          carryforwardAmount > 0
+            ? `Daily income added with ₹${carryforwardAmount} carryforward!`
+            : 'Daily income added successfully'
+        );
         router.push('/');
       } catch (error) {
         toast.error('Failed to add income');
@@ -150,7 +173,10 @@ export default function AddEntryPage() {
               <div className="space-y-2">
                 <Label htmlFor="site_id" className="text-sm font-bold">Select Site</Label>
                 <Select 
-                  onValueChange={(val) => adminFormik.setFieldValue('site_id', val)} 
+                  onValueChange={(val) => {
+                    adminFormik.setFieldValue('site_id', val);
+                    setSelectedSiteForCarryforward(val);
+                  }} 
                   value={adminFormik.values.site_id}
                 >
                   <SelectTrigger className="w-full bg-zinc-50 border-zinc-200 h-12">
@@ -175,6 +201,21 @@ export default function AddEntryPage() {
                   <p className="text-xs text-red-500 font-medium">{adminFormik.errors.site_id as string}</p>
                 )}
               </div>
+
+              {/* Carryforward Notification */}
+              {pendingCarryforward && Number(pendingCarryforward.amount) > 0 && (
+                <Alert className="bg-blue-50 border-blue-200">
+                  <AlertCircle className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-sm text-blue-800">
+                    <strong>₹{pendingCarryforward.amount}</strong> from{' '}
+                    {new Date(pendingCarryforward.from_date).toLocaleDateString('en-US', { 
+                      month: 'short', 
+                      day: 'numeric' 
+                    })}{' '}
+                    will be added to today&apos;s income automatically.
+                  </AlertDescription>
+                </Alert>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="amount" className="text-sm font-bold">Daily Budget Amount (₹)</Label>

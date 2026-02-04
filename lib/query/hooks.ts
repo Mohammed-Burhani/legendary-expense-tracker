@@ -10,6 +10,7 @@ type SiteInsert = Database['public']['Tables']['sites']['Insert'];
 type SiteUpdate = Database['public']['Tables']['sites']['Update'];
 type Expense = Database['public']['Tables']['expenses']['Row'];
 type ExpenseInsert = Database['public']['Tables']['expenses']['Insert'];
+type Carryforward = Database['public']['Tables']['carryforwards']['Row'];
 
 // Users Queries
 export function useManagers() {
@@ -237,6 +238,82 @@ export function useDeleteExpense() {
     onSuccess: () => {
       // Invalidate all expense queries
       queryClient.invalidateQueries({ queryKey: queryKeys.expenses.all });
+    },
+  });
+}
+
+// Carryforward Queries
+export function usePendingCarryforward(siteId?: string, date?: string) {
+  return useQuery({
+    queryKey: queryKeys.carryforwards.pending(siteId, date),
+    queryFn: async () => {
+      if (!siteId || !date) return null;
+      
+      const { data, error } = await supabase
+        .rpc('get_pending_carryforward', {
+          p_site_id: siteId,
+          p_date: date,
+        });
+      
+      if (error) throw error;
+      return data && data.length > 0 ? data[0] : null;
+    },
+    enabled: !!siteId && !!date,
+  });
+}
+
+export function useCarryforwardHistory(siteId?: string, startDate?: string, endDate?: string) {
+  return useQuery({
+    queryKey: queryKeys.carryforwards.history(siteId, startDate, endDate),
+    queryFn: async () => {
+      if (!siteId) return [];
+      
+      const { data, error } = await supabase
+        .rpc('get_carryforward_history', {
+          p_site_id: siteId,
+          p_start_date: startDate || null,
+          p_end_date: endDate || null,
+        });
+      
+      if (error) throw error;
+      return data as Carryforward[];
+    },
+    enabled: !!siteId,
+  });
+}
+
+export function useAllCarryforwards() {
+  return useQuery({
+    queryKey: queryKeys.carryforwards.all,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('carryforwards')
+        .select('*')
+        .order('from_date', { ascending: false });
+      
+      if (error) throw error;
+      return data as Carryforward[];
+    },
+  });
+}
+
+// Carryforward Mutations
+export function useCreateCarryforward() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ siteId, date }: { siteId: string; date: string }) => {
+      const { data, error } = await supabase
+        .rpc('create_carryforward', {
+          p_site_id: siteId,
+          p_date: date,
+        });
+      
+      if (error) throw error;
+      return data && data.length > 0 ? data[0] : null;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.carryforwards.all });
     },
   });
 }

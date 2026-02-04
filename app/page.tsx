@@ -5,7 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, ArrowUpRight, ArrowDownRight, Users, Wallet, Building2, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
-import { useExpenses, useTodayExpenses, useSites, useLaborers, useManagers } from '@/lib/query/hooks';
+import { useExpenses, useTodayExpenses, useSites, useLaborers, useManagers, useCreateCarryforward, useAllCarryforwards } from '@/lib/query/hooks';
+import { toast } from 'sonner';
 
 export default function DashboardPage() {
   const { user } = useApp();
@@ -15,6 +16,8 @@ export default function DashboardPage() {
   const { data: sites = [] } = useSites();
   const { data: laborers = [] } = useLaborers();
   const { data: managers = [] } = useManagers();
+  const { data: allCarryforwards = [] } = useAllCarryforwards();
+  const createCarryforwardMutation = useCreateCarryforward();
 
   const todayEntries = todayExpenses;
   
@@ -30,6 +33,40 @@ export default function DashboardPage() {
 
   if (user?.role === 'ADMIN') {
     const activeSites = sites.filter(s => s.status === 'ACTIVE');
+    
+    // Get yesterday's date
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+    
+    // Check which sites had income yesterday but no carryforward created yet
+    const sitesWithYesterdayIncome = sites.filter(site => {
+      const hadIncome = allExpenses.some(
+        e => e.site_id === site.id && e.type === 'INCOME' && e.date === yesterdayStr
+      );
+      const hasCarryforward = allCarryforwards.some(
+        cf => cf.site_id === site.id && cf.from_date === yesterdayStr
+      );
+      return hadIncome && !hasCarryforward;
+    });
+
+    const handleCreateCarryforward = async (siteId: string, siteName: string) => {
+      try {
+        const result = await createCarryforwardMutation.mutateAsync({
+          siteId,
+          date: yesterdayStr,
+        });
+        
+        if (result && Number(result.amount) > 0) {
+          toast.success(`Carryforward of ₹${result.amount} created for ${siteName}`);
+        } else {
+          toast.info(`No carryforward needed for ${siteName} (expenses matched or exceeded income)`);
+        }
+      } catch (error) {
+        toast.error(`Failed to create carryforward for ${siteName}`);
+        console.error(error);
+      }
+    };
     
     return (
       <div className="space-y-6">
@@ -92,6 +129,51 @@ export default function DashboardPage() {
             <span className="font-bold">Add Daily Income</span>
           </Button>
         </Link>
+
+        {/* Carryforward Notifications */}
+        {sitesWithYesterdayIncome.length > 0 && (
+          <Card className="bg-blue-50 border-blue-200 shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Wallet className="h-5 w-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-blue-900 text-sm mb-1">
+                    Carryforward Available
+                  </h4>
+                  <p className="text-xs text-blue-700 mb-3">
+                    {sitesWithYesterdayIncome.length} site{sitesWithYesterdayIncome.length !== 1 ? 's' : ''} from yesterday need carryforward processing
+                  </p>
+                  <div className="space-y-2">
+                    {sitesWithYesterdayIncome.map(site => (
+                      <Button
+                        key={site.id}
+                        size="sm"
+                        variant="outline"
+                        className="w-full justify-between bg-white border-blue-200 hover:bg-blue-50 text-blue-900"
+                        onClick={() => handleCreateCarryforward(site.id, site.name)}
+                        disabled={createCarryforwardMutation.isPending}
+                      >
+                        <span className="text-xs font-bold">{site.name}</span>
+                        <span className="text-xs">Create Carryforward →</span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="flex gap-3">
+          <Link href="/carryforward" className="flex-1">
+            <Button variant="outline" className="w-full h-12 rounded-xl border-2 border-zinc-200 hover:bg-zinc-50 flex items-center justify-center gap-2">
+              <Wallet className="h-4 w-4" />
+              <span className="font-bold text-sm">Carryforward History</span>
+            </Button>
+          </Link>
+        </div>
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">

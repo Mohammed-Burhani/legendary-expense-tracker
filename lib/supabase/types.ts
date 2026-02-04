@@ -108,6 +108,44 @@ export type Database = {
           updated_at?: string
         }
       }
+      carryforwards: {
+        Row: {
+          id: string
+          site_id: string
+          from_date: string
+          to_date: string
+          amount: number
+          income_amount: number
+          expense_amount: number
+          description: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          site_id: string
+          from_date: string
+          to_date: string
+          amount: number
+          income_amount: number
+          expense_amount: number
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          site_id?: string
+          from_date?: string
+          to_date?: string
+          amount?: number
+          income_amount?: number
+          expense_amount?: number
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never

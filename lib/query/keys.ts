@@ -14,4 +14,10 @@ export const queryKeys = {
     bySite: (siteId: string) => ['expenses', 'site', siteId] as const,
     today: (managerId?: string) => ['expenses', 'today', managerId] as const,
   },
+  carryforwards: {
+    all: ['carryforwards'] as const,
+    pending: (siteId?: string, date?: string) => ['carryforwards', 'pending', siteId, date] as const,
+    history: (siteId?: string, startDate?: string, endDate?: string) => 
+      ['carryforwards', 'history', siteId, startDate, endDate] as const,
+  },
 } as const;
