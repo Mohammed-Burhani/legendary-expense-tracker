@@ -26,8 +26,6 @@ export default function DashboardPage() {
     inward: todayEntries.filter(e => e.type === 'INCOME' && e.category !== 'Carryforward').reduce((acc, curr) => acc + Number(curr.amount), 0),
     carryforward: todayEntries.filter(e => e.type === 'INCOME' && e.category === 'Carryforward').reduce((acc, curr) => acc + Number(curr.amount), 0),
     outward: todayEntries.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + Number(curr.amount), 0),
-    totalInward: allExpenses.filter(e => e.type === 'INCOME' && e.category !== 'Carryforward').reduce((acc, curr) => acc + Number(curr.amount), 0),
-    totalOutward: allExpenses.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + Number(curr.amount), 0),
   };
 
   if (user?.role === 'ADMIN') {
@@ -47,10 +45,10 @@ export default function DashboardPage() {
             <CardContent className="p-2.5">
               <div className="flex items-center gap-1.5 mb-1">
                 <TrendingUp className="h-3.5 w-3.5 text-white/90" />
-                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Inward</span>
+                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Today Inward</span>
               </div>
-              <p className="text-2xl font-bold text-white leading-none">₹{adminStats.totalInward}</p>
-              <p className="text-[10px] text-white/70 mt-1">Today: ₹{adminStats.inward}</p>
+              <p className="text-2xl font-bold text-white leading-none">₹{adminStats.inward}</p>
+              <p className="text-[10px] text-white/70 mt-1">Daily inward amount</p>
             </CardContent>
           </Card>
           
@@ -58,7 +56,7 @@ export default function DashboardPage() {
             <CardContent className="p-2.5">
               <div className="flex items-center gap-1.5 mb-1">
                 <Wallet className="h-3.5 w-3.5 text-white/90" />
-                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Balance</span>
+                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Carryforward</span>
               </div>
               <p className="text-2xl font-bold text-white leading-none">₹{adminStats.carryforward}</p>
               <p className="text-[10px] text-white/70 mt-1">Carried forward</p>
@@ -69,10 +67,10 @@ export default function DashboardPage() {
             <CardContent className="p-2.5">
               <div className="flex items-center gap-1.5 mb-1">
                 <ArrowDownRight className="h-3.5 w-3.5 text-white/90" />
-                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Outward</span>
+                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Today Outward</span>
               </div>
-              <p className="text-2xl font-bold text-white leading-none">₹{adminStats.totalOutward}</p>
-              <p className="text-[10px] text-white/70 mt-1">Today: ₹{adminStats.outward}</p>
+              <p className="text-2xl font-bold text-white leading-none">₹{adminStats.outward}</p>
+              <p className="text-[10px] text-white/70 mt-1">Daily outward amount</p>
             </CardContent>
           </Card>
 
