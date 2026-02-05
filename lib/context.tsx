@@ -22,6 +22,8 @@ interface AppContextType {
   logout: () => Promise<void>;
   isLoading: boolean;
   authUser: SupabaseUser | null;
+  currentSiteId: string | null;
+  setCurrentSiteId: (siteId: string | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -30,6 +32,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [user, setUser] = useState<User | null>(null);
   const [authUser, setAuthUser] = useState<SupabaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentSiteId, setCurrentSiteId] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -54,6 +57,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             console.error('Error fetching user profile:', error);
           } else if (profile) {
             setUser(profile as User);
+            // Set initial site for managers
+            if (profile.role === 'MANAGER' && profile.site_id) {
+              setCurrentSiteId(profile.site_id);
+            }
           }
         }
       } catch (error) {
@@ -81,12 +88,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             .then(({ data: profile }) => {
               if (profile) {
                 setUser(profile as User);
+                // Set initial site for managers
+                if (profile.role === 'MANAGER' && profile.site_id) {
+                  setCurrentSiteId(profile.site_id);
+                }
               }
             })
             
         } else if (event === 'SIGNED_OUT') {
           setAuthUser(null);
           setUser(null);
+          setCurrentSiteId(null);
         }
       }
     );
@@ -108,12 +120,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               .then(({ data: profile }) => {
                 if (profile) {
                   setUser(profile as User);
+                  // Set initial site for managers
+                  if (profile.role === 'MANAGER' && profile.site_id) {
+                    setCurrentSiteId(profile.site_id);
+                  }
                 }
               })
           } else {
             // Session expired, clear user
             setAuthUser(null);
             setUser(null);
+            setCurrentSiteId(null);
           }
         }).catch(error => console.error('Error getting session:', error));
       }
@@ -138,11 +155,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await supabase.auth.signOut();
     setUser(null);
     setAuthUser(null);
+    setCurrentSiteId(null);
     router.push('/login');
   };
 
   return (
-    <AppContext.Provider value={{ user, logout, isLoading, authUser }}>
+    <AppContext.Provider value={{ user, logout, isLoading, authUser, currentSiteId, setCurrentSiteId }}>
       {children}
     </AppContext.Provider>
   );

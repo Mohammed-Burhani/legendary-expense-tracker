@@ -3,13 +3,14 @@
 import { useApp } from '@/lib/context';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { PlusCircle, ArrowUpRight, ArrowDownRight, Users, Wallet, Building2, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { useExpenses, useTodayExpenses, useSites, useLaborers, useManagers } from '@/lib/query/hooks';
-import { toast } from 'sonner';
 
 export default function DashboardPage() {
-  const { user } = useApp();
+  const { user, currentSiteId, setCurrentSiteId } = useApp();
   
   const { data: allExpenses = [] } = useExpenses();
   const { data: todayExpenses = [] } = useTodayExpenses();
@@ -19,8 +20,14 @@ export default function DashboardPage() {
 
   const todayEntries = todayExpenses;
   
-  const userSite = sites.find(s => s.id === user?.site_id);
-  const managerEntries = todayEntries.filter(e => e.manager_id === user?.id);
+  // Get sites managed by this manager
+  const managerSites = sites.filter(s => s.manager_id === user?.id);
+  
+  // Use currentSiteId if available, otherwise fall back to user.site_id
+  const activeSiteId = currentSiteId || user?.site_id;
+  const userSite = sites.find(s => s.id === activeSiteId);
+  
+  const managerEntries = todayEntries.filter(e => e.manager_id === user?.id && e.site_id === activeSiteId);
 
   const adminStats = {
     inward: todayEntries.filter(e => e.type === 'INCOME' && e.category !== 'Carryforward').reduce((acc, curr) => acc + Number(curr.amount), 0),
@@ -214,11 +221,11 @@ export default function DashboardPage() {
     );
   }
 
-  const siteLaborers = laborers.filter(l => l.site_id === user?.site_id);
+  const siteLaborers = laborers.filter(l => l.site_id === activeSiteId);
   
   // Get today's income (daily budget) for this site
   const todayIncomeEntries = todayExpenses.filter(
-    e => e.type === 'INCOME' && e.site_id === user?.site_id
+    e => e.type === 'INCOME' && e.site_id === activeSiteId
   );
   
   // Separate daily budget from carryforward
@@ -239,9 +246,29 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
+        <div className="flex-1 flex items-center gap-3 justify-between">
           <h2 className="text-2xl font-bold tracking-tight">Manager Dashboard</h2>
-          {userSite && <p className="text-sm text-zinc-500 mt-1">{userSite.name}</p>}
+          <div className="flex items-center gap-2 mt-1">
+            {managerSites.length > 1 ? (
+              <Select 
+                value={activeSiteId || ''} 
+                onValueChange={(val) => setCurrentSiteId(val)}
+              >
+                <SelectTrigger className="w-auto h-7 text-xs border-zinc-200 bg-white">
+                  <SelectValue placeholder="Select site" />
+                </SelectTrigger>
+                <SelectContent>
+                  {managerSites.map((site) => (
+                    <SelectItem key={site.id} value={site.id} className="text-xs">
+                      {site.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              userSite && <p className="text-sm text-zinc-500">{userSite.name}</p>
+            )}
+          </div>
         </div>
       </div>
 

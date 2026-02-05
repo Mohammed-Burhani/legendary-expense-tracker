@@ -31,15 +31,21 @@ const incomeValidationSchema = Yup.object({
 });
 
 export default function AddEntryPage() {
-  const { user } = useApp();
+  const { user, currentSiteId, setCurrentSiteId } = useApp();
   const router = useRouter();
   const { data: sites = [] } = useSites();
-  const { data: laborers = [] } = useLaborers(user?.site_id || undefined);
+  const { data: laborers = [] } = useLaborers(currentSiteId || undefined);
   const { data: todayExpenses = [] } = useTodayExpenses();
   const addExpenseMutation = useAddExpense();
 
   const isAdmin = user?.role === 'ADMIN';
   const isManager = user?.role === 'MANAGER';
+
+  // Get sites managed by this manager
+  const managerSites = sites.filter(s => s.manager_id === user?.id);
+  
+  // Use currentSiteId if available, otherwise fall back to user.site_id
+  const activeSiteId = currentSiteId || user?.site_id;
 
   const [selectedSiteForCarryforward, setSelectedSiteForCarryforward] = useState<string>('');
   const today = new Date().toISOString().split('T')[0];
@@ -129,8 +135,8 @@ export default function AddEntryPage() {
     },
     validationSchema: expenseValidationSchema,
     onSubmit: async (values) => {
-      if (!user?.site_id) {
-        toast.error('No site assigned to your account');
+      if (!activeSiteId) {
+        toast.error('No site selected');
         return;
       }
 
@@ -141,7 +147,7 @@ export default function AddEntryPage() {
           category: values.category,
           date: values.date,
           manager_id: user.id,
-          site_id: user.site_id,
+          site_id: activeSiteId,
           type: 'EXPENSE',
           laborer_id: values.laborerId || null,
         });
@@ -165,7 +171,7 @@ export default function AddEntryPage() {
     );
   }
 
-  const userSite = sites.find(s => s.id === user?.site_id);
+  const userSite = sites.find(s => s.id === activeSiteId);
   const siteLaborers = laborers;
   const expenseCategories = ['Materials', 'Labor', 'Fuel', 'Equipment', 'Maintenance', 'Transport', 'Tools', 'Other'];
 
@@ -304,7 +310,27 @@ export default function AddEntryPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Add Outward</h2>
-        {userSite && <p className="text-sm text-zinc-500 mt-1">{userSite.name}</p>}
+        <div className="flex items-center gap-2 mt-1">
+          {managerSites.length > 1 ? (
+            <Select 
+              value={activeSiteId || ''} 
+              onValueChange={(val) => setCurrentSiteId(val)}
+            >
+              <SelectTrigger className="w-auto h-7 text-xs border-zinc-200 bg-white">
+                <SelectValue placeholder="Select site" />
+              </SelectTrigger>
+              <SelectContent>
+                {managerSites.map((site) => (
+                  <SelectItem key={site.id} value={site.id} className="text-xs">
+                    {site.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            userSite && <p className="text-sm text-zinc-500">{userSite.name}</p>
+          )}
+        </div>
       </div>
 
       <Card className="border-zinc-200 shadow-sm bg-white">
