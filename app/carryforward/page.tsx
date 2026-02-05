@@ -60,13 +60,15 @@ export default function CarryforwardPage() {
       </div>
 
       {/* Summary Card */}
-      <Card className="border-none shadow-lg bg-linear-to-br from-blue-500 to-blue-600">
+      <Card className={`border-none shadow-lg ${totalCarryforward >= 0 ? 'bg-linear-to-br from-blue-500 to-blue-600' : 'bg-linear-to-br from-orange-500 to-orange-600'}`}>
         <CardContent className="p-5 text-white">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="h-5 w-5" />
-            <span className="text-xs font-bold uppercase tracking-wider opacity-90">Total Carryforwards</span>
+            <span className="text-xs font-bold uppercase tracking-wider opacity-90">
+              {totalCarryforward >= 0 ? 'Total Surplus' : 'Total Deficit'}
+            </span>
           </div>
-          <p className="text-3xl font-bold mb-3">₹{totalCarryforward.toFixed(2)}</p>
+          <p className="text-3xl font-bold mb-3">₹{Math.abs(totalCarryforward).toFixed(2)}</p>
           <div className="flex items-center gap-4 text-sm">
             <div>
               <p className="text-xs opacity-75">Total Records</p>
@@ -152,7 +154,9 @@ export default function CarryforwardPage() {
                   <p className="font-bold text-sm">{month}</p>
                   <p className="text-xs text-zinc-500">{data.count} carryforward{data.count !== 1 ? 's' : ''}</p>
                 </div>
-                <p className="font-bold text-blue-600">₹{data.total.toFixed(2)}</p>
+                <p className={`font-bold ${data.total >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+                  {data.total >= 0 ? '+' : '-'}₹{Math.abs(data.total).toFixed(2)}
+                </p>
               </div>
             ))}
           </CardContent>
@@ -168,7 +172,7 @@ export default function CarryforwardPage() {
             <p className="text-zinc-300 text-sm mt-1">
               {selectedSite !== 'ALL' || startDate || endDate
                 ? 'Try adjusting your filters'
-                : 'Carryforwards will appear here when income exceeds expenses'}
+                : 'Carryforwards will appear here when there is a balance (positive or negative)'}
             </p>
           </div>
         ) : (
@@ -217,8 +221,12 @@ export default function CarryforwardPage() {
                     </div>
 
                     <div className="text-right">
-                      <p className="text-xs text-zinc-500 mb-1">Carried Forward</p>
-                      <p className="text-2xl font-bold text-blue-600">₹{cf.amount}</p>
+                      <p className="text-xs text-zinc-500 mb-1">
+                        {Number(cf.amount) >= 0 ? 'Surplus' : 'Deficit'}
+                      </p>
+                      <p className={`text-2xl font-bold ${Number(cf.amount) >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+                        {Number(cf.amount) >= 0 ? '+' : '-'}₹{Math.abs(Number(cf.amount))}
+                      </p>
                     </div>
                   </div>
                 </CardContent>

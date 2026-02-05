@@ -97,23 +97,40 @@ export default function AddEntryPage() {
           laborer_id: null,
         });
 
-        // If there's a pending carryforward, add it as a separate income entry
-        if (carryforwardAmount > 0 && pendingCarryforward) {
-          await addExpenseMutation.mutateAsync({
-            amount: carryforwardAmount,
-            description: `Carryforward from ${new Date(pendingCarryforward.from_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
-            category: 'Carryforward',
-            date: values.date,
-            manager_id: user.id,
-            site_id: values.site_id,
-            type: 'INCOME',
-            laborer_id: null,
-          });
+        // Handle carryforward (positive or negative)
+        if (carryforwardAmount !== 0 && pendingCarryforward) {
+          if (carryforwardAmount > 0) {
+            // Positive carryforward - add as income
+            await addExpenseMutation.mutateAsync({
+              amount: carryforwardAmount,
+              description: `Carryforward from ${new Date(pendingCarryforward.from_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+              category: 'Carryforward',
+              date: values.date,
+              manager_id: user.id,
+              site_id: values.site_id,
+              type: 'INCOME',
+              laborer_id: null,
+            });
+          } else {
+            // Negative carryforward (deficit) - add as expense
+            await addExpenseMutation.mutateAsync({
+              amount: Math.abs(carryforwardAmount),
+              description: `Deficit from ${new Date(pendingCarryforward.from_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+              category: 'Carryforward',
+              date: values.date,
+              manager_id: user.id,
+              site_id: values.site_id,
+              type: 'EXPENSE',
+              laborer_id: null,
+            });
+          }
         }
         
         toast.success(
           carryforwardAmount > 0
             ? `Inward added with ₹${carryforwardAmount} carryforward!`
+            : carryforwardAmount < 0
+            ? `Inward added. ₹${Math.abs(carryforwardAmount)} deficit deducted.`
             : 'Inward added successfully'
         );
         router.push('/');
@@ -146,7 +163,7 @@ export default function AddEntryPage() {
           description: values.description,
           category: values.category,
           date: values.date,
-          manager_id: user.id,
+          manager_id: user ? user?.id : "",
           site_id: activeSiteId,
           type: 'EXPENSE',
           laborer_id: values.laborerId || null,
@@ -220,16 +237,29 @@ export default function AddEntryPage() {
               </div>
 
               {/* Carryforward Notification */}
-              {pendingCarryforward && Number(pendingCarryforward.amount) > 0 && (
-                <Alert className="bg-blue-50 border-blue-200">
-                  <AlertCircle className="h-4 w-4 text-blue-600" />
-                  <AlertDescription className="text-sm text-blue-800">
-                    <strong>₹{pendingCarryforward.amount}</strong> from{' '}
-                    {new Date(pendingCarryforward.from_date).toLocaleDateString('en-US', { 
-                      month: 'short', 
-                      day: 'numeric' 
-                    })}{' '}
-                    will be added to today&apos;s income automatically.
+              {pendingCarryforward && Number(pendingCarryforward.amount) !== 0 && (
+                <Alert className={`${Number(pendingCarryforward.amount) > 0 ? 'bg-blue-50 border-blue-200' : 'bg-orange-50 border-orange-200'}`}>
+                  <AlertCircle className={`h-4 w-4 ${Number(pendingCarryforward.amount) > 0 ? 'text-blue-600' : 'text-orange-600'}`} />
+                  <AlertDescription className={`text-sm ${Number(pendingCarryforward.amount) > 0 ? 'text-blue-800' : 'text-orange-800'}`}>
+                    {Number(pendingCarryforward.amount) > 0 ? (
+                      <>
+                        <strong>₹{pendingCarryforward.amount}</strong> from{' '}
+                        {new Date(pendingCarryforward.from_date).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })}{' '}
+                        will be <strong>added</strong> to today&apos;s inward automatically.
+                      </>
+                    ) : (
+                      <>
+                        <strong>₹{Math.abs(Number(pendingCarryforward.amount))}</strong> deficit from{' '}
+                        {new Date(pendingCarryforward.from_date).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })}{' '}
+                        will be <strong>deducted</strong> from today&apos;s inward automatically.
+                      </>
+                    )}
                   </AlertDescription>
                 </Alert>
               )}
@@ -308,7 +338,7 @@ export default function AddEntryPage() {
   // Render Manager Form
   return (
     <div className="space-y-6">
-      <div>
+      <div className='flex-1 flex items-center gap-3 justify-between'>
         <h2 className="text-2xl font-bold tracking-tight">Add Outward</h2>
         <div className="flex items-center gap-2 mt-1">
           {managerSites.length > 1 ? (
