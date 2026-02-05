@@ -47,11 +47,11 @@ export default function AnalyticsPage() {
   }, { INCOME: 0, EXPENSE: 0 } as Record<string, number>);
 
   const totalData = [
-    { name: 'Income', value: totals.INCOME, fill: '#10b981' },
-    { name: 'Expense', value: totals.EXPENSE, fill: '#f43f5e' }
+    { name: 'Inward', value: totals.INCOME, fill: '#10b981' },
+    { name: 'Outward', value: totals.EXPENSE, fill: '#f43f5e' }
   ];
 
-  const netProfit = totals.INCOME - totals.EXPENSE;
+  const balance = totals.INCOME - totals.EXPENSE;
 
   // Site performance (Admin only)
   const sitePerformance = sites.map(site => {
@@ -59,36 +59,36 @@ export default function AnalyticsPage() {
     const siteInc = expenses.filter(e => e.site_id === site.id && e.type === 'INCOME').reduce((a, c) => a + Number(c.amount), 0);
     return { 
       name: site.name.length > 15 ? site.name.substring(0, 15) + '...' : site.name, 
-      Income: siteInc, 
-      Expense: siteExp,
-      Profit: siteInc - siteExp
+      Inward: siteInc, 
+      Outward: siteExp,
+      Balance: siteInc - siteExp
     };
-  }).sort((a, b) => b.Profit - a.Profit);
+  }).sort((a, b) => b.Balance - a.Balance);
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Analytics</h2>
         <p className="text-sm text-zinc-500 mt-1">
-          {user?.role === 'ADMIN' ? 'Financial insights across all sites' : 'Your financial insights'}
+          {user?.role === 'ADMIN' ? 'Financial overview across all sites' : 'Your financial overview'}
         </p>
       </div>
 
-      <Card className={`border-none shadow-lg ${netProfit >= 0 ? 'bg-linear-to-br from-emerald-500 to-emerald-600' : 'bg-linear-to-br from-rose-500 to-rose-600'}`}>
+      <Card className={`border-none shadow-lg ${balance >= 0 ? 'bg-linear-to-br from-emerald-500 to-emerald-600' : 'bg-linear-to-br from-rose-500 to-rose-600'}`}>
         <CardContent className="p-5 text-white">
           <div className="flex items-center gap-2 mb-2">
-            {netProfit >= 0 ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
-            <span className="text-xs font-bold uppercase tracking-wider opacity-90">Net {netProfit >= 0 ? 'Profit' : 'Loss'}</span>
+            {balance >= 0 ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
+            <span className="text-xs font-bold uppercase tracking-wider opacity-90">Balance</span>
           </div>
-          <p className="text-3xl font-bold mb-3">₹{Math.abs(netProfit).toFixed(2)}</p>
+          <p className="text-3xl font-bold mb-3">₹{Math.abs(balance).toFixed(2)}</p>
           <div className="flex items-center gap-4 text-sm">
             <div>
-              <p className="text-xs opacity-75">Total Income</p>
+              <p className="text-xs opacity-75">Total Inward</p>
               <p className="font-bold">₹{totals.INCOME}</p>
             </div>
             <div className="w-px h-8 bg-white/20" />
             <div>
-              <p className="text-xs opacity-75">Total Expense</p>
+              <p className="text-xs opacity-75">Total Outward</p>
               <p className="font-bold">₹{totals.EXPENSE}</p>
             </div>
           </div>
@@ -98,7 +98,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 gap-6">
         <Card className="bg-white border-zinc-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-sm font-bold uppercase tracking-wider text-zinc-500">Income vs Expense</CardTitle>
+            <CardTitle className="text-sm font-bold uppercase tracking-wider text-zinc-500">Inward vs Outward</CardTitle>
           </CardHeader>
           <CardContent className="h-[250px] pt-0">
             <ResponsiveContainer width="100%" height="100%">
@@ -119,7 +119,7 @@ export default function AnalyticsPage() {
         {categoryData.length > 0 && (
           <Card className="bg-white border-zinc-200 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-zinc-500">Expenses by Category</CardTitle>
+              <CardTitle className="text-sm font-bold uppercase tracking-wider text-zinc-500">Outward by Category</CardTitle>
             </CardHeader>
             <CardContent className="h-[300px] pt-0">
               <ResponsiveContainer width="100%" height="100%">
@@ -171,8 +171,8 @@ export default function AnalyticsPage() {
                     cursor={{ fill: '#f4f4f5' }}
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   />
-                  <Bar dataKey="Income" fill="#10b981" radius={[0, 4, 4, 0]} />
-                  <Bar dataKey="Expense" fill="#f43f5e" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="Inward" fill="#10b981" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="Outward" fill="#f43f5e" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>

@@ -71,21 +71,18 @@ export default function AddEntryPage() {
       if (!user) return;
       
       if (hasIncomeToday(values.site_id)) {
-        toast.error('Income already added for this site today');
+        toast.error('Inward already added for this site today');
         return;
       }
 
       try {
         const baseAmount = Number(values.amount);
         const carryforwardAmount = pendingCarryforward?.amount || 0;
-        const totalAmount = baseAmount + Number(carryforwardAmount);
 
-        // Add income with total amount (base + carryforward)
+        // Add today's income (just the base amount, not including carryforward)
         await addExpenseMutation.mutateAsync({
-          amount: totalAmount,
-          description: carryforwardAmount > 0 
-            ? `${values.description} (includes ₹${carryforwardAmount} carryforward from ${new Date(pendingCarryforward.from_date).toLocaleDateString()})`
-            : values.description,
+          amount: baseAmount,
+          description: values.description,
           category: 'Daily Budget',
           date: values.date,
           manager_id: user.id,
@@ -93,15 +90,29 @@ export default function AddEntryPage() {
           type: 'INCOME',
           laborer_id: null,
         });
+
+        // If there's a pending carryforward, add it as a separate income entry
+        if (carryforwardAmount > 0 && pendingCarryforward) {
+          await addExpenseMutation.mutateAsync({
+            amount: carryforwardAmount,
+            description: `Carryforward from ${new Date(pendingCarryforward.from_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+            category: 'Carryforward',
+            date: values.date,
+            manager_id: user.id,
+            site_id: values.site_id,
+            type: 'INCOME',
+            laborer_id: null,
+          });
+        }
         
         toast.success(
           carryforwardAmount > 0
-            ? `Daily income added with ₹${carryforwardAmount} carryforward!`
-            : 'Daily income added successfully'
+            ? `Inward added with ₹${carryforwardAmount} carryforward!`
+            : 'Inward added successfully'
         );
         router.push('/');
       } catch (error) {
-        toast.error('Failed to add income');
+        toast.error('Failed to add inward');
         console.error(error);
       }
     },
@@ -135,10 +146,10 @@ export default function AddEntryPage() {
           laborer_id: values.laborerId || null,
         });
         
-        toast.success('Expense added successfully');
+        toast.success('Outward added successfully');
         router.push('/');
       } catch (error) {
-        toast.error('Failed to add expense');
+        toast.error('Failed to add outward');
         console.error(error);
       }
     },
@@ -163,8 +174,8 @@ export default function AddEntryPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Add Daily Income</h2>
-          <p className="text-sm text-zinc-500 mt-1">Set daily budget for a site</p>
+          <h2 className="text-2xl font-bold tracking-tight">Add Inward</h2>
+          <p className="text-sm text-zinc-500 mt-1">Add daily inward amount for a site</p>
         </div>
 
         <Card className="border-zinc-200 shadow-sm bg-white">
@@ -218,7 +229,7 @@ export default function AddEntryPage() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="amount" className="text-sm font-bold">Daily Budget Amount (₹)</Label>
+                <Label htmlFor="amount" className="text-sm font-bold">Inward Amount (₹)</Label>
                 <Input
                   id="amount"
                   name="amount"
@@ -240,7 +251,7 @@ export default function AddEntryPage() {
                 <Textarea
                   id="description"
                   name="description"
-                  placeholder="e.g. Daily budget for site operations"
+                  placeholder="e.g. Daily inward for site operations"
                   className="bg-zinc-50 border-zinc-200 min-h-[80px] resize-none"
                   onChange={adminFormik.handleChange}
                   onBlur={adminFormik.handleBlur}
@@ -278,7 +289,7 @@ export default function AddEntryPage() {
                   className="flex-1 h-12 text-base font-bold bg-emerald-600 hover:bg-emerald-700 text-white"
                   disabled={adminFormik.isSubmitting || addExpenseMutation.isPending}
                 >
-                  {addExpenseMutation.isPending ? 'Adding...' : 'Add Income'}
+                  {addExpenseMutation.isPending ? 'Adding...' : 'Add Inward'}
                 </Button>
               </div>
             </form>
@@ -292,7 +303,7 @@ export default function AddEntryPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Add Expense</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Add Outward</h2>
         {userSite && <p className="text-sm text-zinc-500 mt-1">{userSite.name}</p>}
       </div>
 
@@ -397,7 +408,7 @@ export default function AddEntryPage() {
                 className="flex-1 h-12 text-base font-bold bg-zinc-950 hover:bg-zinc-800 text-white"
                 disabled={managerFormik.isSubmitting || addExpenseMutation.isPending}
               >
-                {addExpenseMutation.isPending ? 'Saving...' : 'Add Expense'}
+                {addExpenseMutation.isPending ? 'Saving...' : 'Add Outward'}
               </Button>
             </div>
           </form>

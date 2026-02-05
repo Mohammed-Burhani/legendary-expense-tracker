@@ -114,7 +114,7 @@ export default function SiteDetailsPage() {
         <Card className="border-none bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20">
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wider opacity-90">Income</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider opacity-90">Inward</span>
               <TrendingUp className="h-3.5 w-3.5 opacity-80" />
             </div>
             <p className="text-xl font-bold">₹{stats.income.toLocaleString()}</p>
@@ -124,7 +124,7 @@ export default function SiteDetailsPage() {
         <Card className="border-none bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/20">
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wider opacity-90">Expense</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider opacity-90">Outward</span>
               <TrendingDown className="h-3.5 w-3.5 opacity-80" />
             </div>
             <p className="text-xl font-bold">₹{stats.expense.toLocaleString()}</p>
@@ -134,7 +134,7 @@ export default function SiteDetailsPage() {
         <Card className={`border-none ${stats.net >= 0 ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-blue-500/20' : 'bg-gradient-to-br from-orange-500 to-orange-600 shadow-orange-500/20'} text-white shadow-lg`}>
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wider opacity-90">Net</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider opacity-90">Balance</span>
               <Wallet className="h-3.5 w-3.5 opacity-80" />
             </div>
             <p className="text-xl font-bold">₹{Math.abs(stats.net).toLocaleString()}</p>

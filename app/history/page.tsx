@@ -74,8 +74,8 @@ export default function HistoryPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All Types</SelectItem>
-              <SelectItem value="INCOME">Income Only</SelectItem>
-              <SelectItem value="EXPENSE">Expense Only</SelectItem>
+              <SelectItem value="INCOME">Inward Only</SelectItem>
+              <SelectItem value="EXPENSE">Outward Only</SelectItem>
             </SelectContent>
           </Select>
 
@@ -104,7 +104,7 @@ export default function HistoryPage() {
                 ? 'Try adjusting your filters' 
                 : user?.role === 'ADMIN' 
                   ? 'No transactions yet' 
-                  : 'Start adding expenses to see them here'}
+                  : 'Start adding outwards to see them here'}
             </p>
           </div>
         ) : (

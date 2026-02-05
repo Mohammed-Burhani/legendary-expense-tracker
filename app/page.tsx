@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, ArrowUpRight, ArrowDownRight, Users, Wallet, Building2, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
-import { useExpenses, useTodayExpenses, useSites, useLaborers, useManagers, useCreateCarryforward, useAllCarryforwards } from '@/lib/query/hooks';
+import { useExpenses, useTodayExpenses, useSites, useLaborers, useManagers } from '@/lib/query/hooks';
 import { toast } from 'sonner';
 
 export default function DashboardPage() {
@@ -16,8 +16,6 @@ export default function DashboardPage() {
   const { data: sites = [] } = useSites();
   const { data: laborers = [] } = useLaborers();
   const { data: managers = [] } = useManagers();
-  const { data: allCarryforwards = [] } = useAllCarryforwards();
-  const createCarryforwardMutation = useCreateCarryforward();
 
   const todayEntries = todayExpenses;
   
@@ -25,48 +23,15 @@ export default function DashboardPage() {
   const managerEntries = todayEntries.filter(e => e.manager_id === user?.id);
 
   const adminStats = {
-    income: todayEntries.filter(e => e.type === 'INCOME').reduce((acc, curr) => acc + Number(curr.amount), 0),
-    expense: todayEntries.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + Number(curr.amount), 0),
-    totalIncome: allExpenses.filter(e => e.type === 'INCOME').reduce((acc, curr) => acc + Number(curr.amount), 0),
-    totalExpense: allExpenses.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + Number(curr.amount), 0),
+    inward: todayEntries.filter(e => e.type === 'INCOME' && e.category !== 'Carryforward').reduce((acc, curr) => acc + Number(curr.amount), 0),
+    carryforward: todayEntries.filter(e => e.type === 'INCOME' && e.category === 'Carryforward').reduce((acc, curr) => acc + Number(curr.amount), 0),
+    outward: todayEntries.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + Number(curr.amount), 0),
+    totalInward: allExpenses.filter(e => e.type === 'INCOME' && e.category !== 'Carryforward').reduce((acc, curr) => acc + Number(curr.amount), 0),
+    totalOutward: allExpenses.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + Number(curr.amount), 0),
   };
 
   if (user?.role === 'ADMIN') {
     const activeSites = sites.filter(s => s.status === 'ACTIVE');
-    
-    // Get yesterday's date
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split('T')[0];
-    
-    // Check which sites had income yesterday but no carryforward created yet
-    const sitesWithYesterdayIncome = sites.filter(site => {
-      const hadIncome = allExpenses.some(
-        e => e.site_id === site.id && e.type === 'INCOME' && e.date === yesterdayStr
-      );
-      const hasCarryforward = allCarryforwards.some(
-        cf => cf.site_id === site.id && cf.from_date === yesterdayStr
-      );
-      return hadIncome && !hasCarryforward;
-    });
-
-    const handleCreateCarryforward = async (siteId: string, siteName: string) => {
-      try {
-        const result = await createCarryforwardMutation.mutateAsync({
-          siteId,
-          date: yesterdayStr,
-        });
-        
-        if (result && Number(result.amount) > 0) {
-          toast.success(`Carryforward of ₹${result.amount} created for ${siteName}`);
-        } else {
-          toast.info(`No carryforward needed for ${siteName} (expenses matched or exceeded income)`);
-        }
-      } catch (error) {
-        toast.error(`Failed to create carryforward for ${siteName}`);
-        console.error(error);
-      }
-    };
     
     return (
       <div className="space-y-6">
@@ -84,41 +49,41 @@ export default function DashboardPage() {
                 <TrendingUp className="h-3.5 w-3.5 text-white/90" />
                 <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Inward</span>
               </div>
-              <p className="text-2xl font-bold text-white leading-none">₹{adminStats.totalIncome}</p>
-              <p className="text-[10px] text-white/70 mt-1">Balance: ₹{adminStats.income}</p>
+              <p className="text-2xl font-bold text-white leading-none">₹{adminStats.totalInward}</p>
+              <p className="text-[10px] text-white/70 mt-1">Today: ₹{adminStats.inward}</p>
             </CardContent>
           </Card>
           
+          <Card className="bg-linear-to-br from-blue-500 to-blue-600 border-none shadow-md">
+            <CardContent className="p-2.5">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Wallet className="h-3.5 w-3.5 text-white/90" />
+                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Balance</span>
+              </div>
+              <p className="text-2xl font-bold text-white leading-none">₹{adminStats.carryforward}</p>
+              <p className="text-[10px] text-white/70 mt-1">Carried forward</p>
+            </CardContent>
+          </Card>
+
           <Card className="bg-linear-to-br from-rose-500 to-rose-600 border-none shadow-md">
             <CardContent className="p-2.5">
               <div className="flex items-center gap-1.5 mb-1">
                 <ArrowDownRight className="h-3.5 w-3.5 text-white/90" />
                 <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Outward</span>
               </div>
-              <p className="text-2xl font-bold text-white leading-none">₹{adminStats.totalExpense}</p>
-              <p className="text-[10px] text-white/70 mt-1">Today: ₹{adminStats.expense}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-linear-to-br from-blue-500 to-blue-600 border-none shadow-md">
-            <CardContent className="p-2.5">
-              <div className="flex items-center gap-1.5 mb-1">
-                <Building2 className="h-3.5 w-3.5 text-white/90" />
-                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Sites</span>
-              </div>
-              <p className="text-2xl font-bold text-white leading-none">{activeSites.length}</p>
-              <p className="text-[10px] text-white/70 mt-1">Total: {sites.length}</p>
+              <p className="text-2xl font-bold text-white leading-none">₹{adminStats.totalOutward}</p>
+              <p className="text-[10px] text-white/70 mt-1">Today: ₹{adminStats.outward}</p>
             </CardContent>
           </Card>
 
           <Card className="bg-linear-to-br from-purple-500 to-purple-600 border-none shadow-md">
             <CardContent className="p-2.5">
               <div className="flex items-center gap-1.5 mb-1">
-                <Users className="h-3.5 w-3.5 text-white/90" />
-                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Laborers</span>
+                <Building2 className="h-3.5 w-3.5 text-white/90" />
+                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Sites</span>
               </div>
-              <p className="text-2xl font-bold text-white leading-none">{laborers.length}</p>
-              <p className="text-[10px] text-white/70 mt-1">All sites</p>
+              <p className="text-2xl font-bold text-white leading-none">{activeSites.length}</p>
+              <p className="text-[10px] text-white/70 mt-1">Active sites</p>
             </CardContent>
           </Card>
         </div>
@@ -126,45 +91,9 @@ export default function DashboardPage() {
         <Link href="/add" className="block">
           <Button className="w-full h-14 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg flex items-center justify-center gap-2 group transition-all active:scale-95">
             <PlusCircle className="h-5 w-5 group-hover:scale-110 transition-transform" />
-            <span className="font-bold">Add Daily Income</span>
+            <span className="font-bold">Add Inward</span>
           </Button>
         </Link>
-
-        {/* Carryforward Notifications */}
-        {sitesWithYesterdayIncome.length > 0 && (
-          <Card className="bg-blue-50 border-blue-200 shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Wallet className="h-5 w-5 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-bold text-blue-900 text-sm mb-1">
-                    Carryforward Available
-                  </h4>
-                  <p className="text-xs text-blue-700 mb-3">
-                    {sitesWithYesterdayIncome.length} site{sitesWithYesterdayIncome.length !== 1 ? 's' : ''} from yesterday need carryforward processing
-                  </p>
-                  <div className="space-y-2">
-                    {sitesWithYesterdayIncome.map(site => (
-                      <Button
-                        key={site.id}
-                        size="sm"
-                        variant="outline"
-                        className="w-full justify-between bg-white border-blue-200 hover:bg-blue-50 text-blue-900"
-                        onClick={() => handleCreateCarryforward(site.id, site.name)}
-                        disabled={createCarryforwardMutation.isPending}
-                      >
-                        <span className="text-xs font-bold">{site.name}</span>
-                        <span className="text-xs">Create Carryforward →</span>
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         <div className="flex gap-3">
           <Link href="/carryforward" className="flex-1">
@@ -195,10 +124,28 @@ export default function DashboardPage() {
             {sites.map(site => {
               const manager = managers.find(m => m.id === site.manager_id);
               const siteExpenses = allExpenses.filter(e => e.site_id === site.id);
+              const todaySiteExpenses = todayEntries.filter(e => e.site_id === site.id);
+              
+              // Today's inward (excluding carryforward)
+              const todayInward = todaySiteExpenses
+                .filter(e => e.type === 'INCOME' && e.category !== 'Carryforward')
+                .reduce((acc, curr) => acc + Number(curr.amount), 0);
+              
+              // Today's outward
+              const todayOutward = todaySiteExpenses
+                .filter(e => e.type === 'EXPENSE')
+                .reduce((acc, curr) => acc + Number(curr.amount), 0);
+              
+              // Today's balance
+              const todayBalance = todayInward - todayOutward;
+              
+              // Total stats
               const siteIncome = siteExpenses.filter(e => e.type === 'INCOME').reduce((acc, curr) => acc + Number(curr.amount), 0);
               const siteExpense = siteExpenses.filter(e => e.type === 'EXPENSE').reduce((acc, curr) => acc + Number(curr.amount), 0);
+              const totalBalance = siteIncome - siteExpense;
+              
               const siteLaborers = laborers.filter(l => l.site_id === site.id);
-              const todaySiteEntries = todayEntries.filter(e => e.site_id === site.id).length;
+              const todaySiteEntries = todaySiteExpenses.length;
 
               return (
                 <Link key={site.id} href={`/sites/${site.id}`}>
@@ -228,18 +175,34 @@ export default function DashboardPage() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-3 gap-3 mb-3">
                         <div>
-                          <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Income</p>
-                          <p className="text-sm font-bold text-emerald-600">₹{siteIncome}</p>
+                          <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Today Inward</p>
+                          <p className="text-sm font-bold text-emerald-600">₹{todayInward}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Expense</p>
-                          <p className="text-sm font-bold text-rose-600">₹{siteExpense}</p>
+                          <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Today Outward</p>
+                          <p className="text-sm font-bold text-rose-600">₹{todayOutward}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Today</p>
-                          <p className="text-sm font-bold text-blue-600">{todaySiteEntries} entries</p>
+                          <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Today Balance</p>
+                          <p className={`text-sm font-bold ${todayBalance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+                            ₹{Math.abs(todayBalance)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="pt-3 border-t border-zinc-100">
+                        <div className="flex items-center justify-between text-[10px]">
+                          <div>
+                            <span className="text-zinc-400 font-medium">Total Balance: </span>
+                            <span className={`font-bold ${totalBalance >= 0 ? 'text-blue-600' : 'text-rose-600'}`}>
+                              ₹{Math.abs(totalBalance)}
+                            </span>
+                          </div>
+                          <div className="text-zinc-400">
+                            {todaySiteEntries} entries today
+                          </div>
                         </div>
                       </div>
                     </CardContent>
@@ -256,17 +219,24 @@ export default function DashboardPage() {
   const siteLaborers = laborers.filter(l => l.site_id === user?.site_id);
   
   // Get today's income (daily budget) for this site
-  const todayIncome = todayExpenses.find(
+  const todayIncomeEntries = todayExpenses.filter(
     e => e.type === 'INCOME' && e.site_id === user?.site_id
   );
-  const dailyBudget = todayIncome ? Number(todayIncome.amount) : 0;
+  
+  // Separate daily budget from carryforward
+  const dailyBudgetEntry = todayIncomeEntries.find(e => e.category === 'Daily Budget');
+  const carryforwardEntry = todayIncomeEntries.find(e => e.category === 'Carryforward');
+  
+  const dailyBudget = dailyBudgetEntry ? Number(dailyBudgetEntry.amount) : 0;
+  const carryforwardBalance = carryforwardEntry ? Number(carryforwardEntry.amount) : 0;
+  const totalAvailable = dailyBudget + carryforwardBalance;
   
   // Calculate today's expenses
   const todayExpense = managerEntries
     .filter(e => e.type === 'EXPENSE')
     .reduce((acc, curr) => acc + Number(curr.amount), 0);
   
-  const remaining = dailyBudget - todayExpense;
+  const remaining = totalAvailable - todayExpense;
 
   return (
     <div className="space-y-6">
@@ -310,20 +280,33 @@ export default function DashboardPage() {
           <CardContent className="p-2.5">
             <div className="flex items-center gap-1.5 mb-1">
               <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />
-              <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide">Daily Budget</span>
+              <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide">Inward</span>
             </div>
             <p className="text-2xl font-bold text-emerald-900 leading-none">₹{dailyBudget}</p>
             <p className="text-[10px] text-emerald-600 mt-1">
-              {todayIncome ? 'Allocated today' : 'Not set yet'}
+              {dailyBudgetEntry ? 'Today\'s inward' : 'Not set yet'}
             </p>
           </CardContent>
         </Card>
         
+        <Card className="bg-blue-50 border-blue-100 shadow-sm">
+          <CardContent className="p-2.5">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Wallet className="h-3.5 w-3.5 text-blue-600" />
+              <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wide">Balance</span>
+            </div>
+            <p className="text-2xl font-bold text-blue-900 leading-none">₹{carryforwardBalance}</p>
+            <p className="text-[10px] text-blue-600 mt-1">
+              {carryforwardEntry ? 'Carried forward' : 'No carryforward'}
+            </p>
+          </CardContent>
+        </Card>
+
         <Card className="bg-rose-50 border-rose-100 shadow-sm">
           <CardContent className="p-2.5">
             <div className="flex items-center gap-1.5 mb-1">
               <ArrowDownRight className="h-3.5 w-3.5 text-rose-600" />
-              <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wide">Today&apos;s Expense</span>
+              <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wide">Outward</span>
             </div>
             <p className="text-2xl font-bold text-rose-900 leading-none">₹{todayExpense}</p>
             <p className="text-[10px] text-rose-600 mt-1">
@@ -332,19 +315,19 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className={`col-span-2 ${remaining >= 0 ? 'bg-blue-50 border-blue-100' : 'bg-orange-50 border-orange-100'} shadow-sm`}>
+        <Card className={`${remaining >= 0 ? 'bg-purple-50 border-purple-100' : 'bg-orange-50 border-orange-100'} shadow-sm`}>
           <CardContent className="p-2.5">
             <div className="flex items-center gap-1.5 mb-1">
-              <Wallet className={`h-3.5 w-3.5 ${remaining >= 0 ? 'text-blue-600' : 'text-orange-600'}`} />
-              <span className={`text-[10px] font-bold ${remaining >= 0 ? 'text-blue-700' : 'text-orange-700'} uppercase tracking-wide`}>
-                {remaining >= 0 ? 'Remaining Budget' : 'Over Budget'}
+              <TrendingUp className={`h-3.5 w-3.5 ${remaining >= 0 ? 'text-purple-600' : 'text-orange-600'}`} />
+              <span className={`text-[10px] font-bold ${remaining >= 0 ? 'text-purple-700' : 'text-orange-700'} uppercase tracking-wide`}>
+                {remaining >= 0 ? 'Balance' : 'Deficit'}
               </span>
             </div>
-            <p className={`text-2xl font-bold ${remaining >= 0 ? 'text-blue-900' : 'text-orange-900'} leading-none`}>
+            <p className={`text-2xl font-bold ${remaining >= 0 ? 'text-purple-900' : 'text-orange-900'} leading-none`}>
               ₹{Math.abs(remaining).toFixed(2)}
             </p>
-            <p className={`text-[10px] ${remaining >= 0 ? 'text-blue-600' : 'text-orange-600'} mt-1`}>
-              {dailyBudget === 0 ? 'Waiting for daily budget' : remaining >= 0 ? 'Within budget' : 'Exceeded budget'}
+            <p className={`text-[10px] ${remaining >= 0 ? 'text-purple-600' : 'text-orange-600'} mt-1`}>
+              {totalAvailable === 0 ? 'Waiting for inward' : remaining >= 0 ? 'Available' : 'Over spent'}
             </p>
           </CardContent>
         </Card>
@@ -354,7 +337,7 @@ export default function DashboardPage() {
         <Link href="/add" className="flex-1">
           <Button className="w-full h-14 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white shadow-lg flex items-center justify-center gap-2 group transition-all active:scale-95">
             <PlusCircle className="h-5 w-5 group-hover:scale-110 transition-transform" />
-            <span className="font-bold">Add Entry</span>
+            <span className="font-bold">Add Outward</span>
           </Button>
         </Link>
         <Link href="/laborers">
@@ -375,7 +358,7 @@ export default function DashboardPage() {
             <div className="py-12 text-center bg-white rounded-2xl border border-dashed border-zinc-200">
               <Wallet className="h-12 w-12 text-zinc-300 mx-auto mb-3" />
               <p className="text-zinc-400 font-medium">No entries for today yet</p>
-              <p className="text-zinc-300 text-xs mt-1">Start tracking your site expenses</p>
+              <p className="text-zinc-300 text-xs mt-1">Start tracking your site outwards</p>
             </div>
           ) : (
             managerEntries.slice(0, 5).map((entry) => {

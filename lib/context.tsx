@@ -39,10 +39,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         // Get current session
         const { data: { session } } = await supabase.auth.getSession();
-        
+
         if (session?.user) {
           setAuthUser(session.user);
-          
+
           // Fetch user profile from users table
           const { data: profile, error } = await supabase
             .from('users')
@@ -67,20 +67,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
+        // Remove async from here - handle async operations inside
         if (event === 'SIGNED_IN' && session?.user) {
           setAuthUser(session.user);
-          
-          // Fetch user profile
-          const { data: profile } = await supabase
+
+          // Fetch user profile without blocking
+          supabase
             .from('users')
             .select('*')
             .eq('auth_id', session.user.id)
-            .single();
-
-          if (profile) {
-            setUser(profile as User);
-          }
+            .single()
+            .then(({ data: profile }) => {
+              if (profile) {
+                setUser(profile as User);
+              }
+            })
+            
         } else if (event === 'SIGNED_OUT') {
           setAuthUser(null);
           setUser(null);
@@ -89,28 +92,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
 
     // Handle tab visibility changes - refresh session when tab becomes active
-    const handleVisibilityChange = async () => {
+    const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          setAuthUser(session.user);
-          
-          // Re-fetch user profile to ensure fresh data
-          const { data: profile } = await supabase
-            .from('users')
-            .select('*')
-            .eq('auth_id', session.user.id)
-            .single();
+        // Don't use async here either
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session?.user) {
+            setAuthUser(session.user);
 
-          if (profile) {
-            setUser(profile as User);
+            // Re-fetch user profile to ensure fresh data
+            supabase
+              .from('users')
+              .select('*')
+              .eq('auth_id', session.user.id)
+              .single()
+              .then(({ data: profile }) => {
+                if (profile) {
+                  setUser(profile as User);
+                }
+              })
+          } else {
+            // Session expired, clear user
+            setAuthUser(null);
+            setUser(null);
           }
-        } else {
-          // Session expired, clear user
-          setAuthUser(null);
-          setUser(null);
-        }
+        }).catch(error => console.error('Error getting session:', error));
       }
     };
 
