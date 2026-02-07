@@ -10,7 +10,6 @@ import { UserCog, Building2, Plus, Users, Eye, EyeOff } from 'lucide-react';
 import { useManagers, useSites, useLaborers } from '@/lib/query/hooks';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase/client';
 
 export default function ManagersPage() {
   const { user } = useApp();
@@ -42,51 +41,28 @@ export default function ManagersPage() {
     setIsCreating(true);
     
     try {
-      // Create auth user with email confirmation disabled
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email: newManagerEmail.trim(),
-        password: newManagerPassword,
-        options: {
-          emailRedirectTo: undefined,
-          data: {
-            name: newManagerName.trim(),
-            role: 'MANAGER',
-          },
+      // Call API route to create manager using admin client
+      const response = await fetch('/api/managers/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          name: newManagerName.trim(),
+          email: newManagerEmail.trim(),
+          password: newManagerPassword,
+        }),
       });
 
-      if (signUpError) {
-        toast.error(signUpError.message);
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || 'Failed to create manager');
         setIsCreating(false);
         return;
       }
 
-      if (!authData.user) {
-        toast.error('Failed to create auth user');
-        setIsCreating(false);
-        return;
-      }
-
-      // Always create the user profile manually (don't rely on trigger)
-      const { error: insertError } = await supabase
-        .from('users')
-        .insert({
-          auth_id: authData.user.id,
-          email: newManagerEmail.trim(),
-          name: newManagerName.trim(),
-          role: 'MANAGER',
-        })
-        .select("*")
-
-      if (insertError) {
-        // If insert fails, show error
-        console.error('Profile creation failed:', insertError);
-        toast.error(`Failed to create manager profile: ${insertError.message}`);
-        setIsCreating(false);
-        return;
-      }
-
-      toast.success(`Manager ${newManagerName} created successfully!`);
+      toast.success(data.message || `Manager ${newManagerName} created successfully!`);
       setIsAddDialogOpen(false);
       setNewManagerName('');
       setNewManagerEmail('');

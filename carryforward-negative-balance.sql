@@ -17,7 +17,7 @@ RETURNS TABLE(
   amount DECIMAL(10, 2),
   income DECIMAL(10, 2),
   expense DECIMAL(10, 2)
-) AS $
+) AS $$
 DECLARE
   v_income DECIMAL(10, 2);
   v_expense DECIMAL(10, 2);
@@ -104,7 +104,7 @@ BEGIN
     v_income,
     v_expense;
 END;
-$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 -- Update comments
 COMMENT ON TABLE carryforwards IS 'Tracks daily carryforward amounts - positive for surplus, negative for deficit';
