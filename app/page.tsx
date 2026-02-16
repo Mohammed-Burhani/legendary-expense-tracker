@@ -4,10 +4,10 @@ import { useApp } from '@/lib/context';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import { PlusCircle, ArrowUpRight, ArrowDownRight, Users, Wallet, Building2, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { useExpenses, useTodayExpenses, useSites, useLaborers, useManagers } from '@/lib/query/hooks';
+import { formatINR } from '@/lib/format';
 
 export default function DashboardPage() {
   const { user, currentSiteId, setCurrentSiteId } = useApp();
@@ -54,7 +54,7 @@ export default function DashboardPage() {
                 <TrendingUp className="h-3.5 w-3.5 text-white/90" />
                 <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Today Inward</span>
               </div>
-              <p className="text-2xl font-bold text-white leading-none">₹{adminStats.inward}</p>
+              <p className="text-2xl font-bold text-white leading-none">{formatINR(adminStats.inward)}</p>
               <p className="text-[10px] text-white/70 mt-1">Daily inward amount</p>
             </CardContent>
           </Card>
@@ -65,7 +65,7 @@ export default function DashboardPage() {
                 <Wallet className="h-3.5 w-3.5 text-white/90" />
                 <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Carryforward</span>
               </div>
-              <p className="text-2xl font-bold text-white leading-none">₹{adminStats.carryforward}</p>
+              <p className="text-2xl font-bold text-white leading-none">{formatINR(adminStats.carryforward)}</p>
               <p className="text-[10px] text-white/70 mt-1">Carried forward</p>
             </CardContent>
           </Card>
@@ -76,7 +76,7 @@ export default function DashboardPage() {
                 <ArrowDownRight className="h-3.5 w-3.5 text-white/90" />
                 <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Today Outward</span>
               </div>
-              <p className="text-2xl font-bold text-white leading-none">₹{adminStats.outward}</p>
+              <p className="text-2xl font-bold text-white leading-none">{formatINR(adminStats.outward)}</p>
               <p className="text-[10px] text-white/70 mt-1">Daily outward amount</p>
             </CardContent>
           </Card>
@@ -183,16 +183,16 @@ export default function DashboardPage() {
                       <div className="grid grid-cols-3 gap-3 mb-3">
                         <div>
                           <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Today Inward</p>
-                          <p className="text-sm font-bold text-emerald-600">₹{todayInward}</p>
+                          <p className="text-sm font-bold text-emerald-600">{formatINR(todayInward)}</p>
                         </div>
                         <div>
                           <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Today Outward</p>
-                          <p className="text-sm font-bold text-rose-600">₹{todayOutward}</p>
+                          <p className="text-sm font-bold text-rose-600">{formatINR(todayOutward)}</p>
                         </div>
                         <div>
                           <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Today Balance</p>
                           <p className={`text-sm font-bold ${todayBalance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
-                            ₹{Math.abs(todayBalance)}
+                            {formatINR(Math.abs(todayBalance))}
                           </p>
                         </div>
                       </div>
@@ -202,7 +202,7 @@ export default function DashboardPage() {
                           <div>
                             <span className="text-zinc-400 font-medium">Total Balance: </span>
                             <span className={`font-bold ${totalBalance >= 0 ? 'text-blue-600' : 'text-rose-600'}`}>
-                              ₹{Math.abs(totalBalance)}
+                              {formatINR(Math.abs(totalBalance))}
                             </span>
                           </div>
                           <div className="text-zinc-400">
@@ -307,7 +307,7 @@ export default function DashboardPage() {
               <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />
               <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide">Inward</span>
             </div>
-            <p className="text-2xl font-bold text-emerald-900 leading-none">₹{dailyBudget}</p>
+            <p className="text-2xl font-bold text-emerald-900 leading-none">{formatINR(dailyBudget)}</p>
             <p className="text-[10px] text-emerald-600 mt-1">
               {dailyBudgetEntry ? 'Today\'s inward' : 'Not set yet'}
             </p>
@@ -320,7 +320,7 @@ export default function DashboardPage() {
               <Wallet className="h-3.5 w-3.5 text-blue-600" />
               <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wide">Balance</span>
             </div>
-            <p className="text-2xl font-bold text-blue-900 leading-none">₹{carryforwardBalance}</p>
+            <p className="text-2xl font-bold text-blue-900 leading-none">{formatINR(carryforwardBalance)}</p>
             <p className="text-[10px] text-blue-600 mt-1">
               {carryforwardEntry ? 'Carried forward' : 'No carryforward'}
             </p>
@@ -333,7 +333,7 @@ export default function DashboardPage() {
               <ArrowDownRight className="h-3.5 w-3.5 text-rose-600" />
               <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wide">Outward</span>
             </div>
-            <p className="text-2xl font-bold text-rose-900 leading-none">₹{todayExpense}</p>
+            <p className="text-2xl font-bold text-rose-900 leading-none">{formatINR(todayExpense)}</p>
             <p className="text-[10px] text-rose-600 mt-1">
               {managerEntries.filter(e => e.type === 'EXPENSE').length} entries
             </p>
@@ -349,7 +349,7 @@ export default function DashboardPage() {
               </span>
             </div>
             <p className={`text-2xl font-bold ${remaining >= 0 ? 'text-purple-900' : 'text-orange-900'} leading-none`}>
-              ₹{Math.abs(remaining).toFixed(2)}
+              {formatINR(Math.abs(remaining))}
             </p>
             <p className={`text-[10px] ${remaining >= 0 ? 'text-purple-600' : 'text-orange-600'} mt-1`}>
               {totalAvailable === 0 ? 'Waiting for inward' : remaining >= 0 ? 'Available' : 'Over spent'}
@@ -409,7 +409,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <p className={`font-bold text-base ${entry.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {entry.type === 'INCOME' ? '+' : '-'}₹{entry.amount}
+                    {entry.type === 'INCOME' ? '+' : '-'}{formatINR(entry.amount)}
                   </p>
                 </div>
               );

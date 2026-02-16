@@ -51,8 +51,12 @@ export default function LoginPage() {
           return;
         }
 
+        // Wait a bit for the auth state change to propagate through the context
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         // Redirect to home
         router.push('/');
+        router.refresh();
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');

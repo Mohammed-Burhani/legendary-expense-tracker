@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, TrendingUp, TrendingDown, Calendar, X, Users, Building2, Wallet } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
+import { formatINR } from '@/lib/format';
 
 export default function SiteDetailsPage() {
   const params = useParams();
@@ -117,7 +118,7 @@ export default function SiteDetailsPage() {
               <span className="text-[10px] font-semibold uppercase tracking-wider opacity-90">Inward</span>
               <TrendingUp className="h-3.5 w-3.5 opacity-80" />
             </div>
-            <p className="text-xl font-bold">₹{stats.income.toLocaleString()}</p>
+            <p className="text-xl font-bold">{formatINR(stats.income)}</p>
           </CardContent>
         </Card>
         
@@ -127,7 +128,7 @@ export default function SiteDetailsPage() {
               <span className="text-[10px] font-semibold uppercase tracking-wider opacity-90">Outward</span>
               <TrendingDown className="h-3.5 w-3.5 opacity-80" />
             </div>
-            <p className="text-xl font-bold">₹{stats.expense.toLocaleString()}</p>
+            <p className="text-xl font-bold">{formatINR(stats.expense)}</p>
           </CardContent>
         </Card>
 
@@ -137,7 +138,7 @@ export default function SiteDetailsPage() {
               <span className="text-[10px] font-semibold uppercase tracking-wider opacity-90">Balance</span>
               <Wallet className="h-3.5 w-3.5 opacity-80" />
             </div>
-            <p className="text-xl font-bold">₹{Math.abs(stats.net).toLocaleString()}</p>
+            <p className="text-xl font-bold">{formatINR(Math.abs(stats.net))}</p>
           </CardContent>
         </Card>
       </div>
@@ -251,7 +252,7 @@ export default function SiteDetailsPage() {
                       <div className={`flex-shrink-0 font-bold text-base ${
                         entry.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'
                       }`}>
-                        {entry.type === 'INCOME' ? '+' : '-'}₹{Number(entry.amount).toLocaleString()}
+                        {entry.type === 'INCOME' ? '+' : '-'}{formatINR(Number(entry.amount))}
                       </div>
                     </div>
                   </CardContent>

@@ -4,6 +4,7 @@ import { useApp } from '@/lib/context';
 import { Card, CardContent } from '@/components/ui/card';
 import { Users, DollarSign, Calendar } from 'lucide-react';
 import { useLaborers, useExpenses, useSites } from '@/lib/query/hooks';
+import { formatINR } from '@/lib/format';
 
 export default function LaborersPage() {
   const { user } = useApp();
@@ -65,7 +66,7 @@ export default function LaborersPage() {
                       </div>
                       <div>
                         <p className="text-[10px] text-emerald-700 font-bold uppercase">Total Paid</p>
-                        <p className="text-base font-bold text-emerald-900">₹{totalPaid}</p>
+                        <p className="text-base font-bold text-emerald-900">{formatINR(totalPaid)}</p>
                       </div>
                     </div>
 

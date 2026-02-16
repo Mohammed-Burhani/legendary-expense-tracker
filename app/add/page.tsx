@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useSites, useLaborers, useAddExpense, useTodayExpenses, usePendingCarryforward } from '@/lib/query/hooks';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { formatINR, formatINRNumber } from '@/lib/format';
 
 const expenseValidationSchema = Yup.object({
   amount: Yup.number().positive('Must be positive').required('Required'),
@@ -128,9 +129,9 @@ export default function AddEntryPage() {
         
         toast.success(
           carryforwardAmount > 0
-            ? `Inward added with ₹${carryforwardAmount} carryforward!`
+            ? `Inward added with ${formatINR(carryforwardAmount)} carryforward!`
             : carryforwardAmount < 0
-            ? `Inward added. ₹${Math.abs(carryforwardAmount)} deficit deducted.`
+            ? `Inward added. ${formatINR(Math.abs(carryforwardAmount))} deficit deducted.`
             : 'Inward added successfully'
         );
         router.push('/');
@@ -243,7 +244,7 @@ export default function AddEntryPage() {
                   <AlertDescription className={`text-sm ${Number(pendingCarryforward.amount) > 0 ? 'text-blue-800' : 'text-orange-800'}`}>
                     {Number(pendingCarryforward.amount) > 0 ? (
                       <>
-                        <strong>₹{pendingCarryforward.amount}</strong> from{' '}
+                        <strong>{formatINR(pendingCarryforward.amount)}</strong> from{' '}
                         {new Date(pendingCarryforward.from_date).toLocaleDateString('en-US', { 
                           month: 'short', 
                           day: 'numeric' 
@@ -252,7 +253,7 @@ export default function AddEntryPage() {
                       </>
                     ) : (
                       <>
-                        <strong>₹{Math.abs(Number(pendingCarryforward.amount))}</strong> deficit from{' '}
+                        <strong>{formatINR(Math.abs(Number(pendingCarryforward.amount)))}</strong> deficit from{' '}
                         {new Date(pendingCarryforward.from_date).toLocaleDateString('en-US', { 
                           month: 'short', 
                           day: 'numeric' 

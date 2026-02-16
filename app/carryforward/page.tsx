@@ -9,6 +9,7 @@ import { useAllCarryforwards, useCarryforwardHistory, useSites } from '@/lib/que
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { formatINR } from '@/lib/format';
 
 export default function CarryforwardPage() {
   const { user } = useApp();
@@ -68,7 +69,7 @@ export default function CarryforwardPage() {
               {totalCarryforward >= 0 ? 'Total Surplus' : 'Total Deficit'}
             </span>
           </div>
-          <p className="text-3xl font-bold mb-3">₹{Math.abs(totalCarryforward).toFixed(2)}</p>
+          <p className="text-3xl font-bold mb-3">{formatINR(Math.abs(totalCarryforward))}</p>
           <div className="flex items-center gap-4 text-sm">
             <div>
               <p className="text-xs opacity-75">Total Records</p>
@@ -155,7 +156,7 @@ export default function CarryforwardPage() {
                   <p className="text-xs text-zinc-500">{data.count} carryforward{data.count !== 1 ? 's' : ''}</p>
                 </div>
                 <p className={`font-bold ${data.total >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
-                  {data.total >= 0 ? '+' : '-'}₹{Math.abs(data.total).toFixed(2)}
+                  {data.total >= 0 ? '+' : '-'}{formatINR(Math.abs(data.total))}
                 </p>
               </div>
             ))}
@@ -211,11 +212,11 @@ export default function CarryforwardPage() {
                       <div className="grid grid-cols-2 gap-3 text-xs">
                         <div>
                           <p className="text-zinc-500">Income</p>
-                          <p className="font-bold text-emerald-600">₹{cf.income_amount}</p>
+                          <p className="font-bold text-emerald-600">{formatINR(cf.income_amount)}</p>
                         </div>
                         <div>
                           <p className="text-zinc-500">Expense</p>
-                          <p className="font-bold text-rose-600">₹{cf.expense_amount}</p>
+                          <p className="font-bold text-rose-600">{formatINR(cf.expense_amount)}</p>
                         </div>
                       </div>
                     </div>
@@ -225,7 +226,7 @@ export default function CarryforwardPage() {
                         {Number(cf.amount) >= 0 ? 'Surplus' : 'Deficit'}
                       </p>
                       <p className={`text-2xl font-bold ${Number(cf.amount) >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
-                        {Number(cf.amount) >= 0 ? '+' : '-'}₹{Math.abs(Number(cf.amount))}
+                        {Number(cf.amount) >= 0 ? '+' : '-'}{formatINR(Math.abs(Number(cf.amount)))}
                       </p>
                     </div>
                   </div>

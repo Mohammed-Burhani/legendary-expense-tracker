@@ -12,6 +12,7 @@ import { useSites, useManagers, useExpenses, useLaborers, useAddSite, useUpdateS
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
+import { formatINR } from '@/lib/format';
 
 export default function SitesPage() {
   const { user } = useApp();
@@ -309,11 +310,11 @@ export default function SitesPage() {
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Inward</p>
-                    <p className="text-lg font-bold text-emerald-600">₹{siteIncome}</p>
+                    <p className="text-lg font-bold text-emerald-600">{formatINR(siteIncome)}</p>
                   </div>
                   <div>
                     <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Outward</p>
-                    <p className="text-lg font-bold text-rose-600">₹{siteExpense}</p>
+                    <p className="text-lg font-bold text-rose-600">{formatINR(siteExpense)}</p>
                   </div>
                   <div>
                     <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1 flex items-center gap-1">
@@ -321,7 +322,7 @@ export default function SitesPage() {
                       Balance
                     </p>
                     <p className={`text-lg font-bold ${profit >= 0 ? 'text-blue-600' : 'text-rose-600'}`}>
-                      ₹{Math.abs(profit)}
+                      {formatINR(Math.abs(profit))}
                     </p>
                   </div>
                 </div>

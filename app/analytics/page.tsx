@@ -16,6 +16,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { useExpenses, useSites } from '@/lib/query/hooks';
+import { formatINR } from '@/lib/format';
 
 const COLORS = ['#000000', '#71717a', '#a1a1aa', '#d4d4d8', '#e4e4e7', '#10b981', '#f43f5e'];
 
@@ -80,16 +81,16 @@ export default function AnalyticsPage() {
             {balance >= 0 ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
             <span className="text-xs font-bold uppercase tracking-wider opacity-90">Balance</span>
           </div>
-          <p className="text-3xl font-bold mb-3">₹{Math.abs(balance).toFixed(2)}</p>
+          <p className="text-3xl font-bold mb-3">{formatINR(Math.abs(balance))}</p>
           <div className="flex items-center gap-4 text-sm">
             <div>
               <p className="text-xs opacity-75">Total Inward</p>
-              <p className="font-bold">₹{totals.INCOME}</p>
+              <p className="font-bold">{formatINR(totals.INCOME)}</p>
             </div>
             <div className="w-px h-8 bg-white/20" />
             <div>
               <p className="text-xs opacity-75">Total Outward</p>
-              <p className="font-bold">₹{totals.EXPENSE}</p>
+              <p className="font-bold">{formatINR(totals.EXPENSE)}</p>
             </div>
           </div>
         </CardContent>
@@ -148,7 +149,7 @@ export default function AnalyticsPage() {
                   <div key={entry.name} className="flex items-center gap-1.5">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                     <span className="text-[10px] font-bold text-zinc-600 uppercase">{entry.name}</span>
-                    <span className="text-[10px] font-bold text-zinc-400">₹{entry.value}</span>
+                    <span className="text-[10px] font-bold text-zinc-400">{formatINR(entry.value)}</span>
                   </div>
                 ))}
               </div>

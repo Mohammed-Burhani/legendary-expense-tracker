@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { useExpenses, useManagers, useSites, useLaborers, useDeleteExpense } from '@/lib/query/hooks';
+import { formatINR } from '@/lib/format';
 
 export default function HistoryPage() {
   const { user } = useApp();
@@ -154,7 +155,7 @@ export default function HistoryPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <p className={`font-bold text-base ${entry.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {entry.type === 'INCOME' ? '+' : '-'}₹{entry.amount}
+                    {entry.type === 'INCOME' ? '+' : '-'}{formatINR(entry.amount)}
                   </p>
                   {canDelete && (
                     <Button
