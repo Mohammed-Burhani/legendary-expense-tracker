@@ -19,19 +19,19 @@ export const Navbar = () => {
   const userSite = sites.find(s => s.id === user?.site_id);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-white px-4 py-3 flex items-center justify-between shadow-sm">
+    <header className="sticky top-0 z-40 w-full border-b border-golden-200 bg-white px-4 py-3 flex items-center justify-between shadow-sm">
       <div className="flex flex-col">
-        <h1 className="text-xl font-bold tracking-tight text-zinc-900">Legendary Builders</h1>
+        <h1 className="text-xl font-bold tracking-tight text-navy-900">Legendary Builders</h1>
         <div className="flex items-center gap-2 mt-0.5">
           {user && (
             <>
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
-                user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                user.role === 'ADMIN' ? 'bg-golden-100 text-golden-800' : 'bg-navy-100 text-navy-800'
               }`}>
                 {user.role}
               </span>
               {userSite && (
-                <span className="text-[10px] text-zinc-500 flex items-center gap-1">
+                <span className="text-[10px] text-navy-600 flex items-center gap-1">
                   <Building2 className="h-3 w-3" />
                   {userSite.name}
                 </span>
@@ -43,8 +43,8 @@ export const Navbar = () => {
       
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="rounded-full bg-zinc-100 hover:bg-zinc-200">
-            {user?.role === 'ADMIN' ? <ShieldCheck className="h-5 w-5 text-zinc-700" /> : <User className="h-5 w-5 text-zinc-700" />}
+          <Button variant="ghost" size="icon" className="rounded-full bg-golden-100 hover:bg-golden-200">
+            {user?.role === 'ADMIN' ? <ShieldCheck className="h-5 w-5 text-navy-700" /> : <User className="h-5 w-5 text-navy-700" />}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Building2, LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/lib/supabase/client';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -65,16 +66,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-zinc-50 to-zinc-100 p-4">
-      <Card className="w-full max-w-md shadow-xl border-zinc-200">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-golden-50 to-golden-100 p-4">
+      <Card className="w-full max-w-md shadow-xl border-golden-200">
         <CardHeader className="space-y-3 pb-6">
-          <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center mx-auto">
-            <Building2 className="h-8 w-8 text-white" />
+          <div className="w-20 h-20 bg-navy-900 rounded-2xl flex items-center justify-center mx-auto p-3">
+            {/* <Building2 className="h-8 w-8 text-white" /> */}
+            <Image alt='Legendary' src={"/logo.webp"} width={500} height={500} />
           </div>
-          <CardTitle className="text-2xl font-bold text-center">
+          <CardTitle className="text-2xl font-bold text-center text-navy-900">
             Legendary Builders
           </CardTitle>
-          <p className="text-sm text-zinc-500 text-center">
+          <p className="text-sm text-navy-600 text-center">
             Sign in to manage your construction sites
           </p>
         </CardHeader>
@@ -118,7 +120,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-700"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-navy-500 hover:text-navy-700"
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -131,7 +133,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white font-bold rounded-lg flex items-center justify-center gap-2"
+              className="w-full h-12 bg-secondary hover:bg-zinc-800 text-white font-bold rounded-lg flex items-center justify-center gap-2"
               disabled={loading}
             >
               <LogIn className="h-5 w-5" />
@@ -139,8 +141,8 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-zinc-200">
-            <p className="text-xs text-zinc-500 text-center">
+          <div className="mt-6 pt-6 border-t border-golden-200">
+            <p className="text-xs text-navy-500 text-center">
               Contact your administrator for account access
             </p>
           </div>

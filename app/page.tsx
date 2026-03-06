@@ -42,13 +42,13 @@ export default function DashboardPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Admin Dashboard</h2>
-            <p className="text-sm text-zinc-500 mt-1">Overview of all sites and managers</p>
+            <h2 className="text-2xl font-bold tracking-tight text-navy-900">Admin Dashboard</h2>
+            <p className="text-sm text-navy-600 mt-1">Overview of all sites and managers</p>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <Card className="bg-linear-to-br from-emerald-500 to-emerald-600 border-none shadow-md">
+          <Card className="bg-gradient-to-br from-golden-500 to-golden-600 border-none shadow-md">
             <CardContent className="p-2.5">
               <div className="flex items-center gap-1.5 mb-1">
                 <TrendingUp className="h-3.5 w-3.5 text-white/90" />
@@ -59,18 +59,18 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
           
-          <Card className="bg-linear-to-br from-blue-500 to-blue-600 border-none shadow-md">
+          <Card className="bg-gradient-to-br from-navy-700 to-navy-800 border-none shadow-md">
             <CardContent className="p-2.5">
               <div className="flex items-center gap-1.5 mb-1">
-                <Wallet className="h-3.5 w-3.5 text-white/90" />
-                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Carryforward</span>
+                <Wallet className="h-3.5 w-3.5 text-golden-400/90" />
+                <span className="text-[10px] font-bold text-golden-400/90 uppercase tracking-wide">Carryforward</span>
               </div>
               <p className="text-2xl font-bold text-white leading-none">{formatINR(adminStats.carryforward)}</p>
-              <p className="text-[10px] text-white/70 mt-1">Carried forward</p>
+              <p className="text-[10px] text-golden-400/70 mt-1">Carried forward</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-linear-to-br from-rose-500 to-rose-600 border-none shadow-md">
+          <Card className="bg-gradient-to-br from-rose-500 to-rose-600 border-none shadow-md">
             <CardContent className="p-2.5">
               <div className="flex items-center gap-1.5 mb-1">
                 <ArrowDownRight className="h-3.5 w-3.5 text-white/90" />
@@ -81,20 +81,20 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-linear-to-br from-purple-500 to-purple-600 border-none shadow-md">
+          <Card className="bg-gradient-to-br from-navy-600 to-navy-700 border-none shadow-md">
             <CardContent className="p-2.5">
               <div className="flex items-center gap-1.5 mb-1">
-                <Building2 className="h-3.5 w-3.5 text-white/90" />
-                <span className="text-[10px] font-bold text-white/90 uppercase tracking-wide">Sites</span>
+                <Building2 className="h-3.5 w-3.5 text-golden-400/90" />
+                <span className="text-[10px] font-bold text-golden-400/90 uppercase tracking-wide">Sites</span>
               </div>
               <p className="text-2xl font-bold text-white leading-none">{activeSites.length}</p>
-              <p className="text-[10px] text-white/70 mt-1">Active sites</p>
+              <p className="text-[10px] text-golden-400/70 mt-1">Active sites</p>
             </CardContent>
           </Card>
         </div>
 
         <Link href="/add" className="block">
-          <Button className="w-full h-14 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg flex items-center justify-center gap-2 group transition-all active:scale-95">
+          <Button className="w-full h-14 rounded-xl bg-golden-600 hover:bg-golden-700 text-white shadow-lg flex items-center justify-center gap-2 group transition-all active:scale-95">
             <PlusCircle className="h-5 w-5 group-hover:scale-110 transition-transform" />
             <span className="font-bold">Add Inward</span>
           </Button>
@@ -102,7 +102,7 @@ export default function DashboardPage() {
 
         <div className="flex gap-3">
           <Link href="/carryforward" className="flex-1">
-            <Button variant="outline" className="w-full h-12 rounded-xl border-2 border-zinc-200 hover:bg-zinc-50 flex items-center justify-center gap-2">
+            <Button variant="outline" className="w-full h-12 rounded-xl border-2 border-golden-300 hover:bg-golden-50 flex items-center justify-center gap-2 text-navy-900">
               <Wallet className="h-4 w-4" />
               <span className="font-bold text-sm">Carryforward History</span>
             </Button>
@@ -111,15 +111,15 @@ export default function DashboardPage() {
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold flex items-center gap-2">
+            <h3 className="text-lg font-bold flex items-center gap-2 text-navy-900">
               <Building2 className="h-5 w-5" /> Sites & Managers
             </h3>
             <div className="flex gap-2">
-              <Link href="/managers" className="text-xs font-bold text-purple-600 uppercase hover:text-purple-700">
+              <Link href="/managers" className="text-xs font-bold text-golden-700 uppercase hover:text-golden-800">
                 Managers
               </Link>
-              <span className="text-zinc-300">•</span>
-              <Link href="/sites" className="text-xs font-bold text-blue-600 uppercase hover:text-blue-700">
+              <span className="text-golden-300">•</span>
+              <Link href="/sites" className="text-xs font-bold text-navy-700 uppercase hover:text-navy-800">
                 Sites
               </Link>
             </div>
@@ -154,58 +154,58 @@ export default function DashboardPage() {
 
               return (
                 <Link key={site.id} href={`/sites/${site.id}`}>
-                  <Card className="border-zinc-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
+                  <Card className="border-golden-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-3">
                         <div>
-                          <h4 className="font-bold text-zinc-900 text-base">{site.name}</h4>
-                          <p className="text-xs text-zinc-500 mt-0.5">{site.location}</p>
+                          <h4 className="font-bold text-navy-900 text-base">{site.name}</h4>
+                          <p className="text-xs text-navy-600 mt-0.5">{site.location}</p>
                         </div>
                         <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase ${
-                          site.status === 'ACTIVE' ? 'bg-green-100 text-green-700' :
-                          site.status === 'COMPLETED' ? 'bg-blue-100 text-blue-700' :
+                          site.status === 'ACTIVE' ? 'bg-golden-100 text-golden-800' :
+                          site.status === 'COMPLETED' ? 'bg-navy-100 text-navy-800' :
                           'bg-yellow-100 text-yellow-700'
                         }`}>
                           {site.status}
                         </span>
                       </div>
                       
-                      <div className="flex items-center gap-2 mb-3 pb-3 border-b border-zinc-100">
-                        <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center">
-                          <Users className="h-4 w-4 text-zinc-600" />
+                      <div className="flex items-center gap-2 mb-3 pb-3 border-b border-golden-100">
+                        <div className="w-8 h-8 rounded-full bg-golden-100 flex items-center justify-center">
+                          <Users className="h-4 w-4 text-navy-700" />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-zinc-900">{manager?.name}</p>
-                          <p className="text-[10px] text-zinc-500">{siteLaborers.length} laborers</p>
+                          <p className="text-xs font-bold text-navy-900">{manager?.name}</p>
+                          <p className="text-[10px] text-navy-600">{siteLaborers.length} laborers</p>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-3 gap-3 mb-3">
                         <div>
-                          <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Today Inward</p>
-                          <p className="text-sm font-bold text-emerald-600">{formatINR(todayInward)}</p>
+                          <p className="text-[10px] text-navy-600 font-bold uppercase mb-1">Today Inward</p>
+                          <p className="text-sm font-bold text-golden-700">{formatINR(todayInward)}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Today Outward</p>
+                          <p className="text-[10px] text-navy-600 font-bold uppercase mb-1">Today Outward</p>
                           <p className="text-sm font-bold text-rose-600">{formatINR(todayOutward)}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Today Balance</p>
-                          <p className={`text-sm font-bold ${todayBalance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+                          <p className="text-[10px] text-navy-600 font-bold uppercase mb-1">Today Balance</p>
+                          <p className={`text-sm font-bold ${todayBalance >= 0 ? 'text-navy-700' : 'text-orange-600'}`}>
                             {formatINR(Math.abs(todayBalance))}
                           </p>
                         </div>
                       </div>
 
-                      <div className="pt-3 border-t border-zinc-100">
+                      <div className="pt-3 border-t border-golden-100">
                         <div className="flex items-center justify-between text-[10px]">
                           <div>
-                            <span className="text-zinc-400 font-medium">Total Balance: </span>
-                            <span className={`font-bold ${totalBalance >= 0 ? 'text-blue-600' : 'text-rose-600'}`}>
+                            <span className="text-navy-500 font-medium">Total Balance: </span>
+                            <span className={`font-bold ${totalBalance >= 0 ? 'text-navy-700' : 'text-rose-600'}`}>
                               {formatINR(Math.abs(totalBalance))}
                             </span>
                           </div>
-                          <div className="text-zinc-400">
+                          <div className="text-navy-500">
                             {todaySiteEntries} entries today
                           </div>
                         </div>
@@ -247,14 +247,14 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex-1 flex items-center gap-3 justify-between">
-          <h2 className="text-2xl font-bold tracking-tight">Manager Dashboard</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-navy-900">Manager Dashboard</h2>
           <div className="flex items-center gap-2 mt-1">
             {managerSites.length > 1 ? (
               <Select 
                 value={activeSiteId || ''} 
                 onValueChange={(val) => setCurrentSiteId(val)}
               >
-                <SelectTrigger className="w-auto h-7 text-xs border-zinc-200 bg-white">
+                <SelectTrigger className="w-auto h-7 text-xs border-golden-300 bg-white">
                   <SelectValue placeholder="Select site" />
                 </SelectTrigger>
                 <SelectContent>
@@ -266,33 +266,33 @@ export default function DashboardPage() {
                 </SelectContent>
               </Select>
             ) : (
-              userSite && <p className="text-sm text-zinc-500">{userSite.name}</p>
+              userSite && <p className="text-sm text-navy-600">{userSite.name}</p>
             )}
           </div>
         </div>
       </div>
 
       {userSite && (
-        <Card className="bg-linear-to-br from-zinc-900 to-zinc-800 text-white border-none shadow-xl overflow-hidden relative">
+        <Card className="bg-gradient-to-br from-navy-900 to-navy-800 text-white border-none shadow-xl overflow-hidden relative">
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <Building2 className="h-24 w-24" />
           </div>
           <CardContent className="p-5 relative z-10">
             <div className="flex items-center gap-2 mb-1">
-              <Building2 className="h-4 w-4 text-zinc-400" />
-              <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest">Site Information</p>
+              <Building2 className="h-4 w-4 text-golden-400" />
+              <p className="text-golden-400 text-xs font-bold uppercase tracking-widest">Site Information</p>
             </div>
             <h3 className="text-xl font-bold mb-1">{userSite.name}</h3>
-            <p className="text-sm text-zinc-400 mb-4">{userSite.location}</p>
+            <p className="text-sm text-golden-200 mb-4">{userSite.location}</p>
             
-            <div className="flex items-center gap-4 pt-3 border-t border-zinc-700">
+            <div className="flex items-center gap-4 pt-3 border-t border-navy-700">
               <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-zinc-400" />
+                <Users className="h-4 w-4 text-golden-400" />
                 <span className="text-sm font-medium">{siteLaborers.length} Laborers</span>
               </div>
-              <div className="w-px h-4 bg-zinc-700" />
+              <div className="w-px h-4 bg-navy-700" />
               <div className="flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${userSite.status === 'ACTIVE' ? 'bg-green-400' : 'bg-yellow-400'}`} />
+                <span className={`w-2 h-2 rounded-full ${userSite.status === 'ACTIVE' ? 'bg-golden-400' : 'bg-yellow-400'}`} />
                 <span className="text-sm font-medium">{userSite.status}</span>
               </div>
             </div>
@@ -301,27 +301,27 @@ export default function DashboardPage() {
       )}
 
       <div className="grid grid-cols-2 gap-2">
-        <Card className="bg-emerald-50 border-emerald-100 shadow-sm">
+        <Card className="bg-golden-50 border-golden-200 shadow-sm">
           <CardContent className="p-2.5">
             <div className="flex items-center gap-1.5 mb-1">
-              <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />
-              <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide">Inward</span>
+              <TrendingUp className="h-3.5 w-3.5 text-golden-700" />
+              <span className="text-[10px] font-bold text-golden-800 uppercase tracking-wide">Inward</span>
             </div>
-            <p className="text-2xl font-bold text-emerald-900 leading-none">{formatINR(dailyBudget)}</p>
-            <p className="text-[10px] text-emerald-600 mt-1">
+            <p className="text-2xl font-bold text-navy-900 leading-none">{formatINR(dailyBudget)}</p>
+            <p className="text-[10px] text-golden-700 mt-1">
               {dailyBudgetEntry ? 'Today\'s inward' : 'Not set yet'}
             </p>
           </CardContent>
         </Card>
         
-        <Card className="bg-blue-50 border-blue-100 shadow-sm">
+        <Card className="bg-navy-50 border-navy-200 shadow-sm">
           <CardContent className="p-2.5">
             <div className="flex items-center gap-1.5 mb-1">
-              <Wallet className="h-3.5 w-3.5 text-blue-600" />
-              <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wide">Balance</span>
+              <Wallet className="h-3.5 w-3.5 text-navy-700" />
+              <span className="text-[10px] font-bold text-navy-800 uppercase tracking-wide">Balance</span>
             </div>
-            <p className="text-2xl font-bold text-blue-900 leading-none">{formatINR(carryforwardBalance)}</p>
-            <p className="text-[10px] text-blue-600 mt-1">
+            <p className="text-2xl font-bold text-navy-900 leading-none">{formatINR(carryforwardBalance)}</p>
+            <p className="text-[10px] text-navy-700 mt-1">
               {carryforwardEntry ? 'Carried forward' : 'No carryforward'}
             </p>
           </CardContent>
@@ -340,18 +340,18 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className={`${remaining >= 0 ? 'bg-purple-50 border-purple-100' : 'bg-orange-50 border-orange-100'} shadow-sm`}>
+        <Card className={`${remaining >= 0 ? 'bg-golden-50 border-golden-200' : 'bg-orange-50 border-orange-100'} shadow-sm`}>
           <CardContent className="p-2.5">
             <div className="flex items-center gap-1.5 mb-1">
-              <TrendingUp className={`h-3.5 w-3.5 ${remaining >= 0 ? 'text-purple-600' : 'text-orange-600'}`} />
-              <span className={`text-[10px] font-bold ${remaining >= 0 ? 'text-purple-700' : 'text-orange-700'} uppercase tracking-wide`}>
+              <TrendingUp className={`h-3.5 w-3.5 ${remaining >= 0 ? 'text-golden-700' : 'text-orange-600'}`} />
+              <span className={`text-[10px] font-bold ${remaining >= 0 ? 'text-golden-800' : 'text-orange-700'} uppercase tracking-wide`}>
                 {remaining >= 0 ? 'Balance' : 'Deficit'}
               </span>
             </div>
-            <p className={`text-2xl font-bold ${remaining >= 0 ? 'text-purple-900' : 'text-orange-900'} leading-none`}>
+            <p className={`text-2xl font-bold ${remaining >= 0 ? 'text-navy-900' : 'text-orange-900'} leading-none`}>
               {formatINR(Math.abs(remaining))}
             </p>
-            <p className={`text-[10px] ${remaining >= 0 ? 'text-purple-600' : 'text-orange-600'} mt-1`}>
+            <p className={`text-[10px] ${remaining >= 0 ? 'text-golden-700' : 'text-orange-600'} mt-1`}>
               {totalAvailable === 0 ? 'Waiting for inward' : remaining >= 0 ? 'Available' : 'Over spent'}
             </p>
           </CardContent>
@@ -360,13 +360,13 @@ export default function DashboardPage() {
 
       <div className="flex gap-3">
         <Link href="/add" className="flex-1">
-          <Button className="w-full h-14 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white shadow-lg flex items-center justify-center gap-2 group transition-all active:scale-95">
+          <Button className="w-full h-14 rounded-xl bg-navy-900 hover:bg-navy-800 text-golden-400 shadow-lg flex items-center justify-center gap-2 group transition-all active:scale-95">
             <PlusCircle className="h-5 w-5 group-hover:scale-110 transition-transform" />
             <span className="font-bold">Add Outward</span>
           </Button>
         </Link>
         <Link href="/laborers">
-          <Button className="h-14 rounded-xl bg-white border-2 border-zinc-200 text-zinc-950 hover:bg-zinc-50 shadow-sm px-6">
+          <Button className="h-14 rounded-xl bg-white border-2 border-golden-300 text-navy-900 hover:bg-golden-50 shadow-sm px-6">
             <Users className="h-5 w-5" />
           </Button>
         </Link>
@@ -374,41 +374,41 @@ export default function DashboardPage() {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold">Today&apos;s Activity</h3>
-          <Link href="/history" className="text-xs font-bold text-blue-600 uppercase hover:text-blue-700">View All</Link>
+          <h3 className="text-lg font-bold text-navy-900">Today&apos;s Activity</h3>
+          <Link href="/history" className="text-xs font-bold text-golden-700 uppercase hover:text-golden-800">View All</Link>
         </div>
         
         <div className="space-y-3">
           {managerEntries.length === 0 ? (
-            <div className="py-12 text-center bg-white rounded-2xl border border-dashed border-zinc-200">
-              <Wallet className="h-12 w-12 text-zinc-300 mx-auto mb-3" />
-              <p className="text-zinc-400 font-medium">No entries for today yet</p>
-              <p className="text-zinc-300 text-xs mt-1">Start tracking your site outwards</p>
+            <div className="py-12 text-center bg-white rounded-2xl border border-dashed border-golden-200">
+              <Wallet className="h-12 w-12 text-golden-300 mx-auto mb-3" />
+              <p className="text-navy-500 font-medium">No entries for today yet</p>
+              <p className="text-navy-400 text-xs mt-1">Start tracking your site outwards</p>
             </div>
           ) : (
             managerEntries.slice(0, 5).map((entry) => {
               const laborer = entry.laborer_id ? laborers.find(l => l.id === entry.laborer_id) : null;
               
               return (
-                <div key={entry.id} className="flex items-center justify-between p-4 bg-white rounded-xl border border-zinc-100 shadow-sm hover:shadow-md transition-shadow">
+                <div key={entry.id} className="flex items-center justify-between p-4 bg-white rounded-xl border border-golden-200 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2.5 rounded-xl ${entry.type === 'INCOME' ? 'bg-emerald-50' : 'bg-rose-50'}`}>
-                      {entry.type === 'INCOME' ? <ArrowUpRight className="h-5 w-5 text-emerald-600" /> : <ArrowDownRight className="h-5 w-5 text-rose-600" />}
+                    <div className={`p-2.5 rounded-xl ${entry.type === 'INCOME' ? 'bg-golden-50' : 'bg-rose-50'}`}>
+                      {entry.type === 'INCOME' ? <ArrowUpRight className="h-5 w-5 text-golden-700" /> : <ArrowDownRight className="h-5 w-5 text-rose-600" />}
                     </div>
                     <div>
-                      <p className="font-bold text-zinc-900 text-sm">{entry.description}</p>
+                      <p className="font-bold text-navy-900 text-sm">{entry.description}</p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <p className="text-[10px] text-zinc-500 font-medium">{entry.category}</p>
+                        <p className="text-[10px] text-navy-600 font-medium">{entry.category}</p>
                         {laborer && (
                           <>
-                            <span className="text-[10px] text-zinc-300">•</span>
-                            <p className="text-[10px] text-zinc-500 font-medium">{laborer.name}</p>
+                            <span className="text-[10px] text-golden-300">•</span>
+                            <p className="text-[10px] text-navy-600 font-medium">{laborer.name}</p>
                           </>
                         )}
                       </div>
                     </div>
                   </div>
-                  <p className={`font-bold text-base ${entry.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  <p className={`font-bold text-base ${entry.type === 'INCOME' ? 'text-golden-700' : 'text-rose-600'}`}>
                     {entry.type === 'INCOME' ? '+' : '-'}{formatINR(entry.amount)}
                   </p>
                 </div>

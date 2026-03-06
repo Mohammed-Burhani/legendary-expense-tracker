@@ -28,7 +28,7 @@ export const MobileNav = () => {
   const navItems = user?.role === 'ADMIN' ? adminNavItems : managerNavItems;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white pb-safe pt-2 shadow-lg">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-golden-200 bg-white pb-safe pt-2 shadow-lg">
       <div className="flex items-center justify-around px-2">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
@@ -39,10 +39,10 @@ export const MobileNav = () => {
               key={item.href}
               href={item.href}
               className={`flex flex-col items-center gap-1 p-2 transition-colors rounded-lg ${
-                isActive ? 'text-zinc-950 bg-zinc-100' : 'text-zinc-400 hover:text-zinc-600'
+                isActive ? 'text-navy-900 bg-golden-100' : 'text-navy-400 hover:text-navy-600'
               }`}
             >
-              <Icon className={`h-6 w-6 ${isActive ? 'fill-zinc-950/10' : ''}`} />
+              <Icon className={`h-6 w-6 ${isActive ? 'fill-golden-500/20' : ''}`} />
               <span className="text-[10px] font-medium">{item.label}</span>
             </Link>
           );
