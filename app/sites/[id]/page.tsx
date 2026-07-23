@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { formatINR } from '@/lib/format';
 import { useApp } from '@/lib/context';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 export default function SiteDetailsPage() {
   const params = useParams();
@@ -297,7 +298,10 @@ export default function SiteDetailsPage() {
                             onClick={(e) => {
                               e.preventDefault();
                               if (confirm(`Delete this ${entry.type === 'INCOME' ? 'inward' : 'outward'} entry of ${formatINR(Number(entry.amount))}?`)) {
-                                deleteExpense.mutate(entry.id);
+                                deleteExpense.mutate(entry.id, {
+                                  onSuccess: () => toast.success(`${entry.type === 'INCOME' ? 'Inward' : 'Outward'} entry deleted`),
+                                  onError: () => toast.error('Failed to delete entry'),
+                                });
                               }
                             }}
                             className="flex-shrink-0 p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-rose-600 transition-colors"
