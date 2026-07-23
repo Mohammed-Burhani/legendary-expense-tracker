@@ -13,6 +13,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
 import { useSites, useLaborers, useAddExpense, useTodayExpenses, usePendingCarryforward } from '@/lib/query/hooks';
+import { queryKeys } from '@/lib/query/keys';
+import { useQueryClient } from '@tanstack/react-query';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { formatINR, formatINRNumber } from '@/lib/format';
@@ -34,6 +36,7 @@ const incomeValidationSchema = Yup.object({
 export default function AddEntryPage() {
   const { user, currentSiteId, setCurrentSiteId } = useApp();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const outwardMode = searchParams.get('form') === 'outward';
   const { data: sites = [] } = useSites();
@@ -138,6 +141,8 @@ export default function AddEntryPage() {
             ? `Inward added. ${formatINR(Math.abs(carryforwardAmount))} deficit deducted.`
             : 'Inward added successfully'
         );
+        await queryClient.invalidateQueries({ queryKey: queryKeys.expenses.all });
+        await queryClient.invalidateQueries({ queryKey: queryKeys.expenses.today() });
         router.push('/');
       } catch (error) {
         toast.error('Failed to add inward');

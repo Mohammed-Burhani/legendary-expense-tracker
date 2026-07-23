@@ -216,6 +216,7 @@ export function useAddExpense() {
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: queryKeys.expenses.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.expenses.byManager(data.manager_id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.expenses.bySite(data.site_id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.expenses.today(data.manager_id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.expenses.today() });
     },
