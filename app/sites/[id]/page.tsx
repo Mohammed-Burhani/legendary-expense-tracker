@@ -1,10 +1,10 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useSites, useExpenses, useLaborers, useManagers } from '@/lib/query/hooks';
+import { useSites, useExpenses, useLaborers, useManagers, useDeleteExpense } from '@/lib/query/hooks';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, TrendingUp, TrendingDown, Calendar, X, Users, Building2, Wallet, PlusCircle } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, Calendar, X, Users, Building2, Wallet, PlusCircle, Trash2 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { formatINR } from '@/lib/format';
@@ -24,6 +24,7 @@ export default function SiteDetailsPage() {
   const { data: allExpenses = [] } = useExpenses();
   const { data: laborers = [] } = useLaborers();
   const { data: managers = [] } = useManagers();
+  const deleteExpense = useDeleteExpense();
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -120,7 +121,7 @@ export default function SiteDetailsPage() {
       {(isAdmin || isManager) && (
         <div className="flex gap-3">
           <Link
-            href={isAdmin ? '/add' : '/add'}
+            href={isAdmin ? `/add?site=${siteId}` : '/add'}
             className="flex-1"
             onClick={() => {
               if (isManager) setCurrentSiteId(siteId);
@@ -132,7 +133,7 @@ export default function SiteDetailsPage() {
             </Button>
           </Link>
           <Link
-            href={isAdmin ? '/add?form=outward' : '/add'}
+            href={isAdmin ? `/add?form=outward&site=${siteId}` : '/add'}
             className="flex-1"
             onClick={() => {
               if (isManager) setCurrentSiteId(siteId);
@@ -285,10 +286,26 @@ export default function SiteDetailsPage() {
                         </div>
                       </div>
                       
-                      <div className={`flex-shrink-0 font-bold text-base ${
-                        entry.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'
-                      }`}>
-                        {entry.type === 'INCOME' ? '+' : '-'}{formatINR(Number(entry.amount))}
+                      <div className="flex items-center gap-2">
+                        <div className={`flex-shrink-0 font-bold text-base ${
+                          entry.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'
+                        }`}>
+                          {entry.type === 'INCOME' ? '+' : '-'}{formatINR(Number(entry.amount))}
+                        </div>
+                        {isAdmin && (
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (confirm(`Delete this ${entry.type === 'INCOME' ? 'inward' : 'outward'} entry of ${formatINR(Number(entry.amount))}?`)) {
+                                deleteExpense.mutate(entry.id);
+                              }
+                            }}
+                            className="flex-shrink-0 p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-rose-600 transition-colors"
+                            title="Delete entry"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </CardContent>

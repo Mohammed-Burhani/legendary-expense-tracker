@@ -39,9 +39,10 @@ export default function AddEntryPage() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const outwardMode = searchParams.get('form') === 'outward';
+  const preselectedSiteId = searchParams.get('site') || '';
   const { data: sites = [] } = useSites();
   const { data: laborers = [] } = useLaborers(currentSiteId || undefined);
-  const [adminOutwardSiteId, setAdminOutwardSiteId] = useState<string>('');
+  const [adminOutwardSiteId, setAdminOutwardSiteId] = useState<string>(preselectedSiteId);
   const { data: adminOutwardLaborers = [] } = useLaborers(adminOutwardSiteId || undefined);
   const { data: todayExpenses = [] } = useTodayExpenses();
   const addExpenseMutation = useAddExpense();
@@ -55,7 +56,7 @@ export default function AddEntryPage() {
   // Use currentSiteId if available, otherwise fall back to user.site_id
   const activeSiteId = currentSiteId || user?.site_id;
 
-  const [selectedSiteForCarryforward, setSelectedSiteForCarryforward] = useState<string>('');
+  const [selectedSiteForCarryforward, setSelectedSiteForCarryforward] = useState<string>(preselectedSiteId);
   const today = new Date().toISOString().split('T')[0];
   
   // Get pending carryforward for selected site
@@ -78,7 +79,7 @@ export default function AddEntryPage() {
       amount: '',
       description: '',
       date: new Date().toISOString().split('T')[0],
-      site_id: '',
+      site_id: preselectedSiteId,
     },
     validationSchema: incomeValidationSchema,
     onSubmit: async (values) => {
@@ -179,6 +180,11 @@ export default function AddEntryPage() {
           laborer_id: values.laborerId || null,
         });
 
+        // Invalidate queries before navigating so the destination sees fresh data
+        await queryClient.invalidateQueries({ queryKey: queryKeys.expenses.all });
+        await queryClient.invalidateQueries({ queryKey: queryKeys.expenses.bySite(activeSiteId) });
+        await queryClient.invalidateQueries({ queryKey: queryKeys.expenses.today() });
+
         toast.success('Outward added successfully');
         router.push('/');
       } catch (error) {
@@ -203,7 +209,7 @@ export default function AddEntryPage() {
       description: '',
       category: 'Materials',
       date: new Date().toISOString().split('T')[0],
-      site_id: '',
+      site_id: preselectedSiteId,
       laborerId: '',
     },
     validationSchema: adminOutwardValidationSchema,
@@ -221,6 +227,11 @@ export default function AddEntryPage() {
           type: 'EXPENSE',
           laborer_id: values.laborerId || null,
         });
+
+        // Invalidate queries before navigating so the destination sees fresh data
+        await queryClient.invalidateQueries({ queryKey: queryKeys.expenses.all });
+        await queryClient.invalidateQueries({ queryKey: queryKeys.expenses.bySite(values.site_id) });
+        await queryClient.invalidateQueries({ queryKey: queryKeys.expenses.today() });
 
         toast.success('Outward added successfully');
         router.push('/');
@@ -274,7 +285,7 @@ export default function AddEntryPage() {
                     <SelectContent>
                       {sites.map((site) => (
                         <SelectItem key={site.id} value={site.id}>
-                          {site.name}
+                          {site.name}{site.location ? ` · ${site.location}` : ''}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -424,7 +435,7 @@ export default function AddEntryPage() {
                           value={site.id}
                           disabled={alreadyAdded}
                         >
-                          {site.name} {alreadyAdded && '(Already added today)'}
+                          {site.name}{site.location ? ` · ${site.location}` : ''} {alreadyAdded && '(Already added today)'}
                         </SelectItem>
                       );
                     })}
@@ -551,7 +562,7 @@ export default function AddEntryPage() {
               <SelectContent>
                 {managerSites.map((site) => (
                   <SelectItem key={site.id} value={site.id} className="text-xs">
-                    {site.name}
+                    {site.name}{site.location ? ` · ${site.location}` : ''}
                   </SelectItem>
                 ))}
               </SelectContent>
