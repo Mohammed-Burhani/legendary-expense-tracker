@@ -93,21 +93,27 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        <Link href="/add" className="block">
-          <Button className="w-full h-14 rounded-xl bg-golden-600 hover:bg-golden-700 text-white shadow-lg flex items-center justify-center gap-2 group transition-all active:scale-95">
-            <PlusCircle className="h-5 w-5 group-hover:scale-110 transition-transform" />
-            <span className="font-bold">Add Inward</span>
-          </Button>
-        </Link>
-
         <div className="flex gap-3">
-          <Link href="/carryforward" className="flex-1">
-            <Button variant="outline" className="w-full h-12 rounded-xl border-2 border-golden-300 hover:bg-golden-50 flex items-center justify-center gap-2 text-navy-900">
-              <Wallet className="h-4 w-4" />
-              <span className="font-bold text-sm">Carryforward History</span>
+          <Link href="/add" className="flex-1">
+            <Button className="w-full h-14 rounded-xl bg-golden-600 hover:bg-golden-700 text-white shadow-lg flex items-center justify-center gap-2 group transition-all active:scale-95">
+              <PlusCircle className="h-5 w-5 group-hover:scale-110 transition-transform" />
+              <span className="font-bold">Add Inward</span>
+            </Button>
+          </Link>
+          <Link href="/add?form=outward" className="flex-1">
+            <Button className="w-full h-14 rounded-xl bg-navy-900 hover:bg-navy-800 text-golden-400 shadow-lg flex items-center justify-center gap-2 group transition-all active:scale-95">
+              <PlusCircle className="h-5 w-5 group-hover:scale-110 transition-transform" />
+              <span className="font-bold">Add Outward</span>
             </Button>
           </Link>
         </div>
+
+        <Link href="/carryforward" className="block">
+          <Button variant="outline" className="w-full h-12 rounded-xl border-2 border-golden-300 hover:bg-golden-50 hover:text-navy-900 flex items-center justify-center gap-2 text-navy-900">
+            <Wallet className="h-4 w-4" />
+            <span className="font-bold text-sm">Carryforward History</span>
+          </Button>
+        </Link>
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">

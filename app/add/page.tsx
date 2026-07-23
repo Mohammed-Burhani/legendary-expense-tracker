@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useApp } from '@/lib/context';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,8 +34,12 @@ const incomeValidationSchema = Yup.object({
 export default function AddEntryPage() {
   const { user, currentSiteId, setCurrentSiteId } = useApp();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const outwardMode = searchParams.get('form') === 'outward';
   const { data: sites = [] } = useSites();
   const { data: laborers = [] } = useLaborers(currentSiteId || undefined);
+  const [adminOutwardSiteId, setAdminOutwardSiteId] = useState<string>('');
+  const { data: adminOutwardLaborers = [] } = useLaborers(adminOutwardSiteId || undefined);
   const { data: todayExpenses = [] } = useTodayExpenses();
   const addExpenseMutation = useAddExpense();
 
@@ -169,7 +173,50 @@ export default function AddEntryPage() {
           type: 'EXPENSE',
           laborer_id: values.laborerId || null,
         });
-        
+
+        toast.success('Outward added successfully');
+        router.push('/');
+      } catch (error) {
+        toast.error('Failed to add outward');
+        console.error(error);
+      }
+    },
+  });
+
+  // Admin form for adding outward (expenses)
+  const adminOutwardValidationSchema = Yup.object({
+    amount: Yup.number().positive('Must be positive').required('Required'),
+    description: Yup.string().min(3, 'Too short').required('Required'),
+    category: Yup.string().required('Required'),
+    date: Yup.string().required('Required'),
+    site_id: Yup.string().required('Site is required'),
+  });
+
+  const adminOutwardFormik = useFormik({
+    initialValues: {
+      amount: '',
+      description: '',
+      category: 'Materials',
+      date: new Date().toISOString().split('T')[0],
+      site_id: '',
+      laborerId: '',
+    },
+    validationSchema: adminOutwardValidationSchema,
+    onSubmit: async (values) => {
+      if (!user) return;
+
+      try {
+        await addExpenseMutation.mutateAsync({
+          amount: Number(values.amount),
+          description: values.description,
+          category: values.category,
+          date: values.date,
+          manager_id: user.id,
+          site_id: values.site_id,
+          type: 'EXPENSE',
+          laborer_id: values.laborerId || null,
+        });
+
         toast.success('Outward added successfully');
         router.push('/');
       } catch (error) {
@@ -195,6 +242,152 @@ export default function AddEntryPage() {
 
   // Render Admin Form
   if (isAdmin) {
+    // Admin Outward Form
+    if (outwardMode) {
+      return (
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Add Outward</h2>
+            <p className="text-sm text-zinc-500 mt-1">Add daily outward expense for a site</p>
+          </div>
+
+          <Card className="border-zinc-200 shadow-sm bg-white">
+            <CardContent className="p-5">
+              <form onSubmit={adminOutwardFormik.handleSubmit} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="site_id" className="text-sm font-bold">Select Site</Label>
+                  <Select
+                    onValueChange={(val) => {
+                      adminOutwardFormik.setFieldValue('site_id', val);
+                      setAdminOutwardSiteId(val);
+                    }}
+                    value={adminOutwardFormik.values.site_id}
+                  >
+                    <SelectTrigger className="w-full bg-zinc-50 border-zinc-200 h-12">
+                      <SelectValue placeholder="Select site" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sites.map((site) => (
+                        <SelectItem key={site.id} value={site.id}>
+                          {site.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {adminOutwardFormik.touched.site_id && adminOutwardFormik.errors.site_id && (
+                    <p className="text-xs text-red-500 font-medium">{adminOutwardFormik.errors.site_id as string}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="amount" className="text-sm font-bold">Amount (₹)</Label>
+                  <Input
+                    id="amount"
+                    name="amount"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    className="bg-zinc-50 border-zinc-200 h-12 text-lg"
+                    onChange={adminOutwardFormik.handleChange}
+                    onBlur={adminOutwardFormik.handleBlur}
+                    value={adminOutwardFormik.values.amount}
+                  />
+                  {adminOutwardFormik.touched.amount && adminOutwardFormik.errors.amount && (
+                    <p className="text-xs text-red-500 font-medium">{adminOutwardFormik.errors.amount as string}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="category" className="text-sm font-bold">Category</Label>
+                  <Select
+                    onValueChange={(val) => adminOutwardFormik.setFieldValue('category', val)}
+                    value={adminOutwardFormik.values.category}
+                  >
+                    <SelectTrigger className="w-full bg-zinc-50 border-zinc-200 h-12">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {expenseCategories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {adminOutwardFormik.values.category === 'Labor' && adminOutwardLaborers.length > 0 && (
+                  <div className="space-y-2">
+                    <Label htmlFor="laborerId" className="text-sm font-bold">Laborer (Optional)</Label>
+                    <Select
+                      onValueChange={(val) => adminOutwardFormik.setFieldValue('laborerId', val)}
+                      value={adminOutwardFormik.values.laborerId}
+                    >
+                      <SelectTrigger className="w-full bg-zinc-50 border-zinc-200 h-12">
+                        <SelectValue placeholder="Select laborer" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">None</SelectItem>
+                        {adminOutwardLaborers.map((laborer) => (
+                          <SelectItem key={laborer.id} value={laborer.id}>{laborer.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="description" className="text-sm font-bold">Description</Label>
+                  <Textarea
+                    id="description"
+                    name="description"
+                    placeholder="e.g. 50 bags of cement for foundation work"
+                    className="bg-zinc-50 border-zinc-200 min-h-[80px] resize-none"
+                    onChange={adminOutwardFormik.handleChange}
+                    onBlur={adminOutwardFormik.handleBlur}
+                    value={adminOutwardFormik.values.description}
+                  />
+                  {adminOutwardFormik.touched.description && adminOutwardFormik.errors.description && (
+                    <p className="text-xs text-red-500 font-medium">{adminOutwardFormik.errors.description as string}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="date" className="text-sm font-bold">Date</Label>
+                  <Input
+                    id="date"
+                    name="date"
+                    type="date"
+                    className="bg-zinc-50 border-zinc-200 h-12"
+                    onChange={adminOutwardFormik.handleChange}
+                    onBlur={adminOutwardFormik.handleBlur}
+                    value={adminOutwardFormik.values.date}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    type="button"
+                    onClick={() => router.back()}
+                    variant="outline"
+                    className="flex-1 h-12 text-base font-bold border-2 border-zinc-200 hover:bg-zinc-50"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="flex-1 h-12 text-base font-bold bg-zinc-950 hover:bg-zinc-800 text-white"
+                    disabled={adminOutwardFormik.isSubmitting || addExpenseMutation.isPending}
+                  >
+                    {addExpenseMutation.isPending ? 'Adding...' : 'Add Outward'}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    // Admin Inward Form (default)
     return (
       <div className="space-y-6">
         <div>
@@ -207,11 +400,11 @@ export default function AddEntryPage() {
             <form onSubmit={adminFormik.handleSubmit} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="site_id" className="text-sm font-bold">Select Site</Label>
-                <Select 
+                <Select
                   onValueChange={(val) => {
                     adminFormik.setFieldValue('site_id', val);
                     setSelectedSiteForCarryforward(val);
-                  }} 
+                  }}
                   value={adminFormik.values.site_id}
                 >
                   <SelectTrigger className="w-full bg-zinc-50 border-zinc-200 h-12">
@@ -221,8 +414,8 @@ export default function AddEntryPage() {
                     {sites.map((site) => {
                       const alreadyAdded = hasIncomeToday(site.id);
                       return (
-                        <SelectItem 
-                          key={site.id} 
+                        <SelectItem
+                          key={site.id}
                           value={site.id}
                           disabled={alreadyAdded}
                         >
@@ -245,18 +438,18 @@ export default function AddEntryPage() {
                     {Number(pendingCarryforward.amount) > 0 ? (
                       <>
                         <strong>{formatINR(pendingCarryforward.amount)}</strong> from{' '}
-                        {new Date(pendingCarryforward.from_date).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric' 
+                        {new Date(pendingCarryforward.from_date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric'
                         })}{' '}
                         will be <strong>added</strong> to today&apos;s inward automatically.
                       </>
                     ) : (
                       <>
                         <strong>{formatINR(Math.abs(Number(pendingCarryforward.amount)))}</strong> deficit from{' '}
-                        {new Date(pendingCarryforward.from_date).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric' 
+                        {new Date(pendingCarryforward.from_date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric'
                         })}{' '}
                         will be <strong>deducted</strong> from today&apos;s inward automatically.
                       </>
@@ -313,7 +506,7 @@ export default function AddEntryPage() {
               </div>
 
               <div className="flex gap-3 pt-2">
-                <Button 
+                <Button
                   type="button"
                   onClick={() => router.back()}
                   variant="outline"
@@ -321,8 +514,8 @@ export default function AddEntryPage() {
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="flex-1 h-12 text-base font-bold bg-emerald-600 hover:bg-emerald-700 text-white"
                   disabled={adminFormik.isSubmitting || addExpenseMutation.isPending}
                 >

@@ -4,15 +4,21 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSites, useExpenses, useLaborers, useManagers } from '@/lib/query/hooks';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, TrendingUp, TrendingDown, Calendar, X, Users, Building2, Wallet } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, Calendar, X, Users, Building2, Wallet, PlusCircle } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { formatINR } from '@/lib/format';
+import { useApp } from '@/lib/context';
+import Link from 'next/link';
 
 export default function SiteDetailsPage() {
   const params = useParams();
   const router = useRouter();
+  const { user, setCurrentSiteId } = useApp();
   const siteId = params.id as string;
+
+  const isAdmin = user?.role === 'ADMIN';
+  const isManager = user?.role === 'MANAGER';
 
   const { data: sites = [] } = useSites();
   const { data: allExpenses = [] } = useExpenses();
@@ -109,6 +115,36 @@ export default function SiteDetailsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Add Inward / Outward Buttons for Admin */}
+      {(isAdmin || isManager) && (
+        <div className="flex gap-3">
+          <Link
+            href={isAdmin ? '/add' : '/add'}
+            className="flex-1"
+            onClick={() => {
+              if (isManager) setCurrentSiteId(siteId);
+            }}
+          >
+            <Button className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg flex items-center justify-center gap-2 group transition-all active:scale-95">
+              <PlusCircle className="h-5 w-5 group-hover:scale-110 transition-transform" />
+              <span className="font-bold text-sm">Add Inward</span>
+            </Button>
+          </Link>
+          <Link
+            href={isAdmin ? '/add?form=outward' : '/add'}
+            className="flex-1"
+            onClick={() => {
+              if (isManager) setCurrentSiteId(siteId);
+            }}
+          >
+            <Button className="w-full h-12 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg flex items-center justify-center gap-2 group transition-all active:scale-95">
+              <PlusCircle className="h-5 w-5 group-hover:scale-110 transition-transform" />
+              <span className="font-bold text-sm">Add Outward</span>
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-3 gap-2">
