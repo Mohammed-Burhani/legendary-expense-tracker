@@ -1,5 +1,5 @@
 // Service Worker for PWA
-const CACHE_NAME = 'legendary-builders-v1';
+const CACHE_NAME = 'legendary-builders-v2';
 const urlsToCache = [
   '/',
   '/login',
@@ -28,34 +28,48 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - Network-First for navigation, Cache-First for static assets
 self.addEventListener('fetch', (event) => {
+  // Navigation requests (page loads) must go Network-First
+  // so Next.js client-side routing works correctly
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // Fallback to cache only when offline
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+
+  // Static assets: Cache-First (fast loading)
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-        
-        return fetch(event.request).then(
-          (response) => {
-            // Check if valid response
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
+        if (response) return response;
 
-            // Clone the response
-            const responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
-
+        return fetch(event.request).then((response) => {
+          if (!response || response.status !== 200 || response.type !== 'basic') {
             return response;
           }
-        );
+
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+
+          return response;
+        });
       })
   );
 });

@@ -127,10 +127,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 }
               })
           } else {
-            // Session expired, clear user
-            setAuthUser(null);
-            setUser(null);
-            setCurrentSiteId(null);
+            // Session refresh returned nothing - could be a transient failure
+            // (SW cache race, network blip). Don't clear existing user state.
+            // They'll be redirected by the auth guard if truly expired.
+            console.warn('visibilitychange: no session found, keeping existing user');
           }
         }).catch(error => console.error('Error getting session:', error));
       }
